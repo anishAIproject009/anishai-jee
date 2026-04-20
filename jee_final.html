@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANISH.AI — JEE Solver</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#09080a;--card:#141200;--card2:#1c1900;
+  --brd:rgba(255,106,0,0.15);--brd2:rgba(255,106,0,0.30);--brd3:rgba(255,106,0,0.50);
+  --or1:#ff6a00;--or2:#ff8c00;--or3:#ffb347;
+  --gls:rgba(255,106,0,0.07);--text:#fff5e6;--muted:#7a6040;
+  --hint:#f0c040;--verify:#c080f0;--cor:#60d080;--err:#f06060;--theory:#80c0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Lora',serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,106,0,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,106,0,0.025) 1px,transparent 1px);background-size:48px 48px;}
+body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:700px;height:400px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.gloss{height:2px;background:linear-gradient(90deg,transparent,#ff9040,#fff8e0,#ff9040,transparent);}
+
+/* ── SPLASH SCREEN ── */
+#splash{position:fixed;inset:0;z-index:9999;background:#0a0800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#splash .sp-gloss{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff9040,#fff8e0,#ff9040,transparent);}
+#splash .sp-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,106,0,0.08) 0%,transparent 70%);pointer-events:none;}
+@keyframes splashFade{0%{opacity:1;}100%{opacity:0;pointer-events:none;}}
+.splash-hide{animation:splashFade 0.8s ease forwards;}
+
+/* Compass spin for splash */
+@keyframes fullSpin{from{transform:rotateY(0deg) rotateX(6deg);}to{transform:rotateY(360deg) rotateX(6deg);}}
+@keyframes sheen-s{0%,40%,100%{opacity:0}48%{opacity:0.8}52%{opacity:0.8}60%{opacity:0}}
+@keyframes cshadow{0%,50%,100%{transform:scaleX(0.5);opacity:0.3}25%,75%{transform:scaleX(1);opacity:0.7}}
+.c3d{width:80px;height:80px;perspective:220px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ci{width:72px;height:72px;transform-style:preserve-3d;animation:fullSpin 3s linear infinite;}
+.csh{width:52px;height:6px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3s linear infinite;}
+.sr{animation:sheen-s 3s linear infinite;}
+
+/* Splash text animations */
+@keyframes nameIn{0%,30%{opacity:0;transform:translateY(10px);}55%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
+@keyframes aiIn{0%,45%{opacity:0;}65%{opacity:1;}100%{opacity:1;}}
+@keyframes solverIn{0%,55%{opacity:0;transform:translateY(6px);}75%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
+@keyframes p1In{0%,60%{opacity:0;transform:scale(0.5);}72%{opacity:1;transform:scale(1);}100%{opacity:1;}}
+@keyframes p2In{0%,68%{opacity:0;transform:scale(0.5);}80%{opacity:1;transform:scale(1);}100%{opacity:1;}}
+@keyframes p3In{0%,76%{opacity:0;transform:scale(0.5);}88%{opacity:1;transform:scale(1);}100%{opacity:1;}}
+
+.sp-name{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:0.1em;display:flex;align-items:baseline;gap:2px;}
+.sp-name .an{color:#fff5e6;animation:nameIn 3.5s ease-out both;}
+.sp-name .ai{color:#ff6a00;animation:aiIn 3.5s ease-out both;}
+.sp-solver{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.25em;color:rgba(255,106,0,0.65);animation:solverIn 3.5s ease-out both;}
+.sp-pills{display:flex;gap:8px;margin-top:4px;}
+.sp-pill{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:600;padding:4px 12px;border-radius:99px;border:1px solid rgba(255,106,0,0.35);color:#ff8030;background:rgba(255,106,0,0.1);}
+.sp-pill:nth-child(1){animation:p1In 3.5s ease-out both;}
+.sp-pill:nth-child(2){animation:p2In 3.5s ease-out both;}
+.sp-pill:nth-child(3){animation:p3In 3.5s ease-out both;}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(9,8,10,0.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:0.06em;display:flex;align-items:center;gap:12px;color:#fff5e6;}
+.logo b{color:#ff6a00;}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.quota-pill{font-family:'JetBrains Mono',monospace;font-size:0.66rem;padding:4px 10px;border-radius:99px;border:1px solid var(--brd2);color:var(--muted);background:var(--card);}
+.quota-pill.paid{border-color:var(--brd3);color:var(--or2);}
+.quota-pill.low{border-color:rgba(240,96,96,0.5);color:var(--err);}
+#user-phone{font-family:'JetBrains Mono',monospace;font-size:0.66rem;color:var(--muted);}
+.logout-btn{font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--brd2);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.logout-btn:hover{color:var(--err);border-color:rgba(240,96,96,0.5);}
+
+/* ── PAGES ── */
+.page{display:none;position:relative;z-index:1;}
+.page.active{display:block;}
+
+/* ── WELCOME PAGE ── */
+#welcome-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.welcome-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--brd2);border-radius:22px;overflow:hidden;animation:fadeUp 0.6s ease;box-shadow:0 0 50px rgba(255,106,0,0.1);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.wc-gloss{height:2px;background:linear-gradient(90deg,transparent,rgba(255,180,60,0.8),rgba(255,240,160,1),rgba(255,180,60,0.8),transparent);}
+.wc-hero{background:radial-gradient(ellipse at 50% 0%,rgba(255,106,0,0.1) 0%,transparent 70%);padding:32px 28px 24px;text-align:center;border-bottom:1px solid var(--brd);}
+.wc-logo-area{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px;}
+.wc-appname{font-family:'Syne',sans-serif;font-weight:800;font-size:1.7rem;letter-spacing:0.08em;color:#fff5e6;}
+.wc-appname b{color:#ff6a00;}
+.wc-tagline{font-size:0.78rem;color:rgba(255,106,0,0.6);letter-spacing:0.18em;font-family:'Syne',sans-serif;}
+.wc-statement{background:rgba(255,106,0,0.06);border:1px solid rgba(255,106,0,0.18);border-radius:12px;padding:16px 18px;margin:0 20px 18px;text-align:left;}
+.wc-statement p{font-size:0.82rem;line-height:1.85;color:#ffe0c0;font-style:italic;}
+.wc-sig{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,106,0,0.15);}
+.wc-sig-name{font-size:0.85rem;font-weight:600;color:#ff6a00;font-family:'Syne',sans-serif;}
+.wc-sig-cred{font-size:0.75rem;color:rgba(255,160,80,0.7);margin-top:2px;}
+.wc-features{padding:0 20px 16px;display:flex;flex-direction:column;gap:8px;}
+.wc-feat{display:flex;align-items:center;gap:10px;background:rgba(255,106,0,0.04);border:1px solid rgba(255,106,0,0.1);border-radius:8px;padding:9px 12px;}
+.wc-feat-icon{font-size:14px;}
+.wc-feat-text{font-size:0.78rem;color:#ffe0c0;line-height:1.4;}
+.wc-feat-text b{color:#ff9040;font-weight:600;}
+.wc-cta{margin:0 20px 14px;display:block;width:calc(100% - 40px);padding:14px;background:linear-gradient(135deg,#ff6a00,#ff9040);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.08em;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s;text-align:center;}
+.wc-cta:hover{transform:translateY(-2px);}
+.wc-free-note{text-align:center;font-size:0.72rem;color:rgba(255,106,0,0.5);padding-bottom:16px;letter-spacing:0.06em;}
+.wc-footer{text-align:center;padding:10px;font-size:0.68rem;color:rgba(255,106,0,0.25);border-top:1px solid var(--brd);font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;}
+.wc-footer b{color:rgba(255,106,0,0.5);}
+
+/* ── LOGIN PAGE ── */
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-card{width:100%;max-width:390px;background:var(--card);border:1px solid var(--brd2);border-radius:20px;overflow:hidden;animation:fadeUp 0.5s ease;box-shadow:0 0 40px rgba(255,106,0,0.08);}
+.login-gloss{height:2px;background:linear-gradient(90deg,transparent,rgba(255,180,60,0.8),rgba(255,240,160,1),rgba(255,180,60,0.8),transparent);}
+.login-inner{padding:36px 32px;}
+.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;text-align:center;margin-bottom:4px;color:#fff5e6;}
+.login-logo b{color:#ff6a00;}
+.login-sub{text-align:center;color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:28px;}
+.inp-label{font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;color:var(--muted);display:block;margin-bottom:7px;}
+.inp-field{width:100%;padding:13px 15px;background:#0a0800;border:1px solid var(--brd2);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.96rem;transition:border-color 0.2s;margin-bottom:14px;}
+.inp-field:focus{outline:none;border-color:var(--or1);box-shadow:0 0 0 3px rgba(255,106,0,0.08);}
+.inp-field::placeholder{color:var(--muted);font-size:0.8rem;}
+.primary-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.08em;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s,opacity 0.2s;}
+.primary-btn:hover:not(:disabled){transform:translateY(-2px);}
+.primary-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.login-note{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:14px;font-style:italic;}
+.free-badge{display:block;width:fit-content;margin:14px auto 0;background:rgba(255,106,0,0.1);border:1px solid var(--brd2);border-radius:99px;padding:5px 14px;font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;color:var(--or2);}
+
+/* ── APP PAGE ── */
+#app-page{max-width:860px;margin:0 auto;padding:32px 18px 80px;}
+.nav-tabs{display:flex;gap:5px;margin-bottom:28px;background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:5px;}
+.nav-tab{flex:1;padding:10px;border-radius:8px;border:none;background:transparent;font-family:'Syne',sans-serif;font-weight:700;font-size:0.76rem;letter-spacing:0.07em;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.nav-tab.active{background:linear-gradient(135deg,rgba(255,106,0,0.18),rgba(255,140,0,0.1));color:var(--or1);border:1px solid var(--brd2);box-shadow:0 0 12px rgba(255,106,0,0.1);}
+.sec-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;margin-bottom:4px;}
+.sec-title em{color:var(--or1);font-style:italic;}
+.sec-sub{color:var(--muted);font-size:0.82rem;font-style:italic;margin-bottom:24px;}
+
+/* Subject pills — one line */
+.subj-row{display:flex;gap:6px;margin-bottom:18px;}
+.subj-btn{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;padding:7px 4px;border-radius:99px;border:1px solid var(--brd);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;text-align:center;white-space:nowrap;}
+.subj-btn.am{background:rgba(255,106,0,0.1);color:var(--or1);border-color:var(--or1);box-shadow:0 0 8px rgba(255,106,0,0.15);}
+.subj-btn.ap{background:rgba(64,192,240,0.1);color:#40c0f0;border-color:#40c0f0;}
+.subj-btn.ac{background:rgba(255,179,71,0.1);color:var(--or3);border-color:var(--or3);}
+
+/* Upload */
+.upload-zone{border:1.5px dashed var(--brd2);border-radius:12px;padding:32px 18px;text-align:center;cursor:pointer;background:var(--gls);transition:all 0.3s;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--or1);background:rgba(255,106,0,0.05);box-shadow:0 0 20px rgba(255,106,0,0.07);}
+.upload-zone input{display:none;}
+.up-icon{font-size:2rem;display:block;margin-bottom:8px;opacity:0.6;}
+.up-title{font-family:'Syne',sans-serif;font-weight:600;font-size:0.9rem;color:var(--text);margin-bottom:4px;}
+.up-sub{color:var(--muted);font-size:0.75rem;font-style:italic;}
+#preview-wrap{display:none;margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--brd2);position:relative;}
+#preview-wrap img{width:100%;max-height:300px;object-fit:contain;background:#0a0800;display:block;}
+.rm-img{position:absolute;top:8px;right:8px;background:rgba(9,8,10,0.9);border:1px solid var(--brd2);color:var(--muted);border-radius:99px;padding:3px 10px;font-size:0.68rem;cursor:pointer;font-family:'Syne',sans-serif;transition:color 0.2s;}
+.rm-img:hover{color:var(--err);}
+.or-row{display:flex;align-items:center;gap:10px;margin:13px 0 9px;}
+.or-row span{color:var(--muted);font-size:0.72rem;white-space:nowrap;}
+.or-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--brd2),transparent);}
+textarea.q-text{width:100%;background:var(--card);border:1px solid var(--brd2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Lora',serif;font-size:0.88rem;resize:vertical;min-height:58px;transition:border-color 0.2s;}
+textarea.q-text:focus{outline:none;border-color:var(--or1);}
+textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
+
+/* Mode buttons */
+.mode-row{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap;}
+.mode-btn{flex:1;min-width:100px;padding:9px 6px;border-radius:9px;border:1px solid var(--brd);background:var(--card);color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.6;}
+.mode-btn.mh{background:rgba(240,192,64,0.08);color:var(--hint);border-color:var(--hint);}
+.mode-btn.mf{background:rgba(255,106,0,0.1);color:var(--or1);border-color:var(--or1);box-shadow:0 0 8px rgba(255,106,0,0.1);}
+.mode-btn.mv{background:rgba(192,128,240,0.08);color:var(--verify);border-color:var(--verify);}
+
+/* Verify box */
+#verify-box{display:none;margin-top:10px;background:var(--card);border:1px solid var(--verify);border-radius:10px;padding:13px 14px;}
+#verify-box label{font-family:'Syne',sans-serif;font-size:0.68rem;color:var(--verify);display:block;margin-bottom:7px;}
+#student-ans{width:100%;background:#0a0800;border:1px solid var(--brd2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Lora',serif;font-size:0.86rem;resize:vertical;min-height:52px;}
+#student-ans:focus{outline:none;border-color:var(--verify);}
+#student-ans::placeholder{color:var(--muted);font-style:italic;}
+
+/* Solve button */
+#solve-btn{display:block;width:100%;margin-top:14px;padding:14px;border-radius:11px;border:none;cursor:pointer;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.09em;color:#09080a;box-shadow:0 4px 24px rgba(255,106,0,0.5);transition:transform 0.15s,box-shadow 0.2s;}
+#solve-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 30px rgba(255,106,0,0.6);}
+#solve-btn:disabled{opacity:0.3;cursor:not-allowed;box-shadow:none;}
+
+/* ATOM LOADER */
+#loader{display:none;text-align:center;padding:36px 0;}
+#theory-loader{display:none;text-align:center;padding:36px 0;}
+.atom-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:12px;}
+.atom{position:relative;width:90px;height:90px;}
+.nucleus{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#ff6a00;box-shadow:0 0 10px #ff6a00,0 0 22px rgba(255,106,0,0.5);animation:npulse 1.8s ease-in-out infinite;}
+@keyframes npulse{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.35);}}
+.orbit{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid rgba(255,106,0,0.2);}
+.o1{width:40px;height:40px;margin:-20px 0 0 -20px;animation:sp1 2.2s linear infinite;}
+.o2{width:64px;height:64px;margin:-32px 0 0 -32px;animation:sp2 3.1s linear infinite;transform:rotate(60deg);}
+.o3{width:88px;height:88px;margin:-44px 0 0 -44px;animation:sp3 4.0s linear infinite;transform:rotate(120deg);}
+@keyframes sp1{to{transform:rotate(360deg);}}
+@keyframes sp2{from{transform:rotate(60deg);}to{transform:rotate(420deg);}}
+@keyframes sp3{from{transform:rotate(120deg);}to{transform:rotate(480deg);}}
+.elec{position:absolute;top:-5px;left:50%;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:#ff6a00;box-shadow:0 0 5px #ff6a00;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:5px;font-weight:700;color:#fff;}
+.e1{animation:co1 2.2s linear infinite;}
+.e2{animation:co2 3.1s linear infinite;}
+.e3{animation:co3 4.0s linear infinite;}
+@keyframes co1{to{transform:rotate(-360deg);}}
+@keyframes co2{from{transform:rotate(-60deg);}to{transform:rotate(-420deg);}}
+@keyframes co3{from{transform:rotate(-120deg);}to{transform:rotate(-480deg);}}
+.solving-txt{font-family:'Syne',sans-serif;font-size:0.76rem;color:var(--muted);letter-spacing:0.12em;}
+.sdot{animation:sd 1.4s ease-in-out infinite;opacity:0;}
+.sdot:nth-child(2){animation-delay:0.2s;}
+.sdot:nth-child(3){animation-delay:0.4s;}
+@keyframes sd{0%,80%,100%{opacity:0;}40%{opacity:1;}}
+
+/* Result card */
+.result-card{display:none;margin-top:20px;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;box-shadow:0 0 30px rgba(255,106,0,0.06);}
+.result-head{padding:11px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:rgba(255,106,0,0.04);}
+.tag{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;padding:2px 8px;border-radius:99px;border:1px solid currentColor;}
+.verdict{padding:12px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;}
+.v-ok{background:rgba(96,208,128,0.08);color:#60d080;}
+.v-bad{background:rgba(240,96,96,0.08);color:#f06060;}
+.v-mid{background:rgba(255,106,0,0.08);color:var(--or2);}
+
+/* Motivational note */
+.motive-note{margin:12px 18px;padding:12px 14px;border-radius:10px;font-size:0.82rem;line-height:1.75;font-style:italic;}
+.motive-note.correct{background:rgba(96,208,128,0.07);border:1px solid rgba(96,208,128,0.2);color:#a0f0b0;}
+.motive-note.wrong{background:rgba(240,96,96,0.07);border:1px solid rgba(240,96,96,0.2);color:#ffa0a0;}
+.motive-note.partial{background:rgba(255,106,0,0.07);border:1px solid rgba(255,106,0,0.2);color:#ffcc80;}
+.motive-sig{margin-top:8px;font-size:0.78rem;font-weight:600;font-style:normal;color:var(--or1);font-family:'Syne',sans-serif;}
+
+/* Solution body */
+.result-body{padding:18px 20px;font-size:0.9rem;line-height:1.95;font-family:'Lora',serif;}
+.result-body h3{font-family:'Syne',sans-serif;font-size:0.86rem;font-weight:700;color:var(--or1);margin:14px 0 5px;}
+.math-line{display:block;background:rgba(255,106,0,0.06);border-left:2.5px solid var(--or1);padding:7px 12px;margin:7px 0;border-radius:0 7px 7px 0;font-family:'JetBrains Mono',monospace;font-size:0.83rem;color:var(--or3);white-space:pre-wrap;}
+.diagram-wrap{margin:14px 0;background:rgba(255,106,0,0.03);border:1px solid var(--brd);border-radius:10px;padding:12px;overflow-x:auto;}
+.diagram-wrap svg{max-width:100%;}
+
+/* Keyword popup */
+.kw{border-bottom:1px dotted var(--or2);cursor:pointer;color:#ffcc80;transition:color 0.2s;}
+.kw:hover{color:var(--or1);}
+.kw-popup{display:none;position:fixed;z-index:1000;background:#1c1900;border:1px solid var(--brd2);border-radius:14px;padding:18px 20px;max-width:300px;box-shadow:0 8px 40px rgba(0,0,0,0.5);animation:fadeUp 0.2s ease;}
+.kw-popup.show{display:block;}
+.kw-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:var(--or1);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--brd);}
+.kw-body{font-size:0.78rem;line-height:1.7;color:#ffe0c0;}
+.kw-body b{color:var(--or2);}
+.kw-body .kw-formula{display:block;background:rgba(255,106,0,0.08);padding:5px 8px;border-radius:6px;margin:5px 0;font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--or3);}
+.kw-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;}
+.kw-overlay{display:none;position:fixed;inset:0;z-index:999;}
+.kw-overlay.show{display:block;}
+
+/* Post actions */
+.post-actions{display:none;padding:0 16px 16px;gap:7px;flex-wrap:wrap;}
+.act-btn{padding:7px 14px;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s;border:1px solid;}
+.act-reveal{color:var(--hint);border-color:var(--hint);background:rgba(240,192,64,0.07);}
+.act-reveal:hover{background:rgba(240,192,64,0.14);}
+.act-similar{color:#40c0f0;border-color:#40c0f0;background:rgba(64,192,240,0.07);}
+.act-similar:hover{background:rgba(64,192,240,0.14);}
+.act-theory{color:var(--theory);border-color:var(--theory);background:rgba(128,192,255,0.07);}
+.act-theory:hover{background:rgba(128,192,255,0.14);}
+
+/* Follow-up */
+#followup-section{display:none;margin-top:12px;background:var(--card2);border:1px solid var(--brd2);border-radius:10px;padding:12px 14px;}
+#followup-section label{font-family:'Syne',sans-serif;font-size:0.68rem;color:#40c0f0;display:block;margin-bottom:7px;}
+.fu-count{font-size:0.62rem;color:var(--muted);float:right;}
+#followup-text{width:100%;background:#0a0800;border:1px solid var(--brd2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Lora',serif;font-size:0.85rem;resize:vertical;min-height:46px;}
+#followup-text:focus{outline:none;border-color:#40c0f0;}
+#followup-text::placeholder{color:var(--muted);font-style:italic;}
+#followup-btn{margin-top:8px;padding:7px 16px;border-radius:7px;background:rgba(64,192,240,0.08);border:1px solid #40c0f0;color:#40c0f0;font-family:'Syne',sans-serif;font-weight:700;font-size:0.74rem;cursor:pointer;transition:all 0.2s;}
+#followup-btn:hover{background:rgba(64,192,240,0.16);}
+#followup-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* Similar */
+.similar-card{display:none;margin-top:18px;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;}
+.similar-head{padding:11px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;color:#40c0f0;background:rgba(64,192,240,0.04);}
+.similar-body{padding:14px 18px;counter-reset:qnum;}
+.q-item{padding:10px 12px 10px 36px;margin-bottom:8px;border:1px solid rgba(255,106,0,0.12);border-radius:8px;font-size:0.86rem;line-height:1.7;background:rgba(255,106,0,0.03);position:relative;counter-increment:qnum;}
+.q-item::before{content:counter(qnum);position:absolute;left:10px;top:10px;font-family:'JetBrains Mono',monospace;font-size:0.66rem;font-weight:600;color:var(--or1);background:rgba(255,106,0,0.12);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center;}
+.q-answer{font-size:0.78rem;color:var(--or3);margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,106,0,0.1);}
+.q-answer b{color:var(--or1);}
+
+/* Theory */
+.theory-search{display:flex;gap:8px;margin-bottom:20px;}
+.theory-search input{flex:1;padding:12px 14px;background:var(--card);border:1px solid var(--brd2);border-radius:10px;color:var(--text);font-family:'Lora',serif;font-size:0.88rem;}
+.theory-search input:focus{outline:none;border-color:var(--theory);}
+.theory-search input::placeholder{color:var(--muted);font-style:italic;}
+.theory-search button{padding:10px 18px;border-radius:10px;background:rgba(128,192,255,0.08);border:1px solid var(--theory);color:var(--theory);font-family:'Syne',sans-serif;font-weight:700;font-size:0.76rem;cursor:pointer;transition:all 0.2s;}
+.theory-search button:hover{background:rgba(128,192,255,0.16);}
+.topic-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.chip{padding:5px 12px;border-radius:99px;border:1px solid var(--brd);background:var(--card);font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.chip:hover{color:var(--or1);border-color:var(--or1);background:rgba(255,106,0,0.07);}
+.theory-card{display:none;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;}
+.theory-head{padding:11px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;color:var(--theory);background:rgba(128,192,255,0.04);}
+.theory-body{padding:18px 20px;font-size:0.9rem;line-height:1.95;font-family:'Lora',serif;color:var(--text);}
+.theory-body h3{font-family:'Syne',sans-serif;font-size:0.86rem;font-weight:700;color:var(--theory);margin:14px 0 5px;}
+
+/* Subscribe banner */
+.sub-banner{display:none;margin-top:16px;background:linear-gradient(135deg,rgba(255,106,0,0.1),rgba(255,140,0,0.06));border:1px solid var(--brd2);border-radius:13px;padding:22px 18px;text-align:center;animation:fadeUp 0.4s ease;}
+.sub-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--or1);margin-bottom:4px;}
+.sub-desc{color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:14px;}
+.sub-price{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;color:var(--or1);}
+.sub-price span{font-size:0.82rem;font-weight:400;color:var(--muted);}
+.sub-feats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:12px 0 16px;}
+.sub-feat{font-size:0.76rem;color:var(--text);display:flex;align-items:center;gap:4px;}
+.sub-feat::before{content:'✓';color:var(--cor);font-weight:700;}
+.pay-btn{padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s;}
+.pay-btn:hover{transform:translateY(-2px);}
+
+/* Footer */
+footer{position:relative;z-index:1;text-align:center;padding:16px;color:var(--muted);font-size:0.66rem;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--brd);}
+footer b{color:var(--or1);}
+
+@media(max-width:600px){header{padding:12px 14px;}#app-page{padding:20px 12px 60px;}.sec-title{font-size:1.2rem;}.mode-btn{min-width:calc(50% - 6px);font-size:0.66rem;}#user-phone{display:none;}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="sp-gloss"></div>
+  <div class="sp-bg"></div>
+  <div class="c3d">
+    <div class="ci">
+      <svg width="72" height="72" viewBox="0 0 46 46" fill="none">
+        <defs>
+          <linearGradient id="hgSp" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient>
+          <linearGradient id="llSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient>
+          <linearGradient id="rlSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff9040"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient>
+          <linearGradient id="sgSp" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="49%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="51%" stop-color="white" stop-opacity="0"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient>
+        </defs>
+        <circle cx="23" cy="7" r="4.5" fill="url(#hgSp)" stroke="#cc4400" stroke-width="0.7"/>
+        <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
+        <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llSp)" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="15" cy="40.5" r="0.8" fill="#ff6a00"/>
+        <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="url(#rlSp)" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <g transform="rotate(32,33,35)"><rect x="30.5" y="30" width="5" height="9" rx="1.2" fill="#ffe0a0" stroke="#ffb347" stroke-width="0.8"/><polygon points="30.5,39 33,44 35.5,39" fill="#f5c060"/><circle cx="33" cy="44" r="1" fill="#444"/></g>
+        <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
+        <rect class="sr" x="0" y="0" width="46" height="46" fill="url(#sgSp)" rx="2"/>
+      </svg>
+    </div>
+    <div class="csh"></div>
+  </div>
+  <div class="sp-name"><span class="an">ANISH</span><span class="ai">.AI</span></div>
+  <div class="sp-solver">JEE SOLVER</div>
+  <div class="sp-pills">
+    <div class="sp-pill">Physics</div>
+    <div class="sp-pill">Chemistry</div>
+    <div class="sp-pill">Maths</div>
+  </div>
+</div>
+
+<!-- GLOSS STRIPE -->
+<div class="gloss"></div>
+
+<!-- HEADER -->
+<header id="main-header" style="display:none">
+  <div class="logo">
+    <!-- Mini compass -->
+    <div style="width:32px;height:32px;perspective:160px;display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="width:28px;height:28px;transform-style:preserve-3d;animation:fullSpin 3s linear infinite;">
+        <svg width="28" height="28" viewBox="0 0 46 46" fill="none">
+          <defs><linearGradient id="hgH" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient><linearGradient id="llH" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient><linearGradient id="sgH" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+          <circle cx="23" cy="7" r="4.5" fill="url(#hgH)" stroke="#cc4400" stroke-width="0.7"/>
+          <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
+          <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llH)" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="#ff9040" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
+          <rect style="animation:sheen-s 3s linear infinite;" x="0" y="0" width="46" height="46" fill="url(#sgH)" rx="2"/>
+        </svg>
+      </div>
+    </div>
+    ANISH<b>.AI</b> JEE
+  </div>
+  <div class="hdr-right">
+    <div class="quota-pill" id="quota-display">Loading...</div>
+    <div id="user-phone"></div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- WELCOME PAGE -->
+<div id="welcome-page" class="page">
+  <div class="welcome-card">
+    <div class="wc-gloss"></div>
+    <div class="wc-hero">
+      <div class="wc-logo-area">
+        <!-- Welcome compass -->
+        <div style="width:64px;height:64px;perspective:200px;display:flex;flex-direction:column;align-items:center;gap:3px;">
+          <div style="width:58px;height:58px;transform-style:preserve-3d;animation:fullSpin 3.5s linear infinite;">
+            <svg width="58" height="58" viewBox="0 0 46 46" fill="none">
+              <defs><linearGradient id="hgW" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient><linearGradient id="llW" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient><linearGradient id="sgW" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="49%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="51%" stop-color="white" stop-opacity="0"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+              <circle cx="23" cy="7" r="4.5" fill="url(#hgW)" stroke="#cc4400" stroke-width="0.7"/>
+              <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
+              <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llW)" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="15" cy="40.5" r="0.8" fill="#ff6a00"/>
+              <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="#ff9040" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <g transform="rotate(32,33,35)"><rect x="30.5" y="30" width="5" height="9" rx="1.2" fill="#ffe0a0" stroke="#ffb347" stroke-width="0.8"/><polygon points="30.5,39 33,44 35.5,39" fill="#f5c060"/><circle cx="33" cy="44" r="1" fill="#444"/></g>
+              <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
+              <rect style="animation:sheen-s 3.5s linear infinite;" x="0" y="0" width="46" height="46" fill="url(#sgW)" rx="2"/>
+            </svg>
+          </div>
+          <div style="width:42px;height:4px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3.5s linear infinite;"></div>
+        </div>
+        <div>
+          <div class="wc-appname">ANISH<b>.AI</b> JEE</div>
+          <div class="wc-tagline">PHYSICS · CHEMISTRY · MATHS</div>
+        </div>
+      </div>
+    </div>
+    <div class="wc-statement">
+      <p>"This app doesn't just solve your problems — it guides you, assists you, and motivates you towards complete understanding. Every solution comes with similar practice questions and supporting theory, so you grow with every doubt you clear."</p>
+      <div class="wc-sig">
+        <div class="wc-sig-name">Anish Srivastava</div>
+        <div class="wc-sig-cred">B.Tech, IIT/K</div>
+      </div>
+    </div>
+    <div class="wc-features">
+      <div class="wc-feat"><span class="wc-feat-icon">📷</span><div class="wc-feat-text"><b>Upload any question</b> — camera, gallery or type it</div></div>
+      <div class="wc-feat"><span class="wc-feat-icon">📖</span><div class="wc-feat-text"><b>Hint · Full Solution · Verify</b> — you choose how much help</div></div>
+      <div class="wc-feat"><span class="wc-feat-icon">📐</span><div class="wc-feat-text"><b>Auto diagrams</b> — labelled, specific to your question</div></div>
+      <div class="wc-feat"><span class="wc-feat-icon">📚</span><div class="wc-feat-text"><b>Theory always free</b> — concepts at your fingertips</div></div>
+      <div class="wc-feat"><span class="wc-feat-icon">🔁</span><div class="wc-feat-text"><b>Similar questions with answers</b> — practice the same concept</div></div>
+    </div>
+    <button class="wc-cta" onclick="showLogin()">START FOR FREE →</button>
+    <div class="wc-free-note">🎁 5 free questions · No payment needed</div>
+    <div class="wc-footer">Designed by <b>ANISH</b> · Anish Physics Lab</div>
+  </div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="page">
+  <div class="login-card">
+    <div class="login-gloss"></div>
+    <div class="login-inner">
+      <div class="login-logo">ANISH<b>.AI</b> JEE</div>
+      <div class="login-sub">Physics · Chemistry · Maths</div>
+      <div id="phone-step">
+        <label class="inp-label">MOBILE NUMBER</label>
+        <input type="tel" class="inp-field" id="phone-input" maxlength="10" placeholder="10-digit mobile number">
+        <button class="primary-btn" onclick="sendOTP()">SEND OTP →</button>
+        <div class="free-badge">🎁 5 free questions — no payment needed</div>
+        <p class="login-note">OTP will be sent via SMS</p>
+      </div>
+      <div id="otp-step" style="display:none">
+        <label class="inp-label">ENTER OTP</label>
+        <input type="text" class="inp-field" id="otp-input" maxlength="6" placeholder="6-digit OTP" style="letter-spacing:0.3em;font-size:1.1rem;text-align:center">
+        <button class="primary-btn" onclick="verifyOTP()">VERIFY & LOGIN →</button>
+        <p class="login-note" style="margin-top:10px"><a href="#" onclick="showPhoneStep()" style="color:var(--or1);text-decoration:none">← Change number</a></p>
+      </div>
+      <div id="login-msg" style="margin-top:12px;text-align:center;font-size:0.78rem;color:var(--muted)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="app-page" class="page">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('solver')">⚗️ SOLVER</button>
+    <button class="nav-tab" onclick="switchTab('theory')">📚 THEORY <span style="font-size:0.56rem;color:var(--cor);margin-left:3px">FREE</span></button>
+  </div>
+
+  <!-- SOLVER TAB -->
+  <div id="solver-tab">
+    <div class="sec-title">Ask. <em>Solve.</em> Master.</div>
+    <p class="sec-sub">Upload your question — verified solution with diagrams.</p>
+
+    <div class="subj-row">
+      <button class="subj-btn am" data-sub="Maths"    onclick="setSub(this,'m')">📐 Maths</button>
+      <button class="subj-btn"    data-sub="Physics"   onclick="setSub(this,'p')">⚛️ Physics</button>
+      <button class="subj-btn"    data-sub="Chemistry" onclick="setSub(this,'c')">🧪 Chemistry</button>
+    </div>
+
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('img-input').click()">
+      <input type="file" id="img-input" accept="image/*" onchange="handleImg(event)">
+      <span class="up-icon">📷</span>
+      <div class="up-title">Click to upload or drag & drop</div>
+      <div class="up-sub">Camera · Gallery · JPG · PNG · WEBP</div>
+    </div>
+    <div id="preview-wrap"><img id="preview-img" src="" alt=""><button class="rm-img" onclick="removeImg()">✕ Remove</button></div>
+
+    <div class="or-row"><div class="or-line"></div><span>or type your question</span><div class="or-line"></div></div>
+    <textarea class="q-text" id="q-text" placeholder="Type your question here, or add context to the image..."></textarea>
+
+    <div class="mode-row">
+      <button class="mode-btn mh" id="btn-hint"   onclick="setMode('hint')">💡 HINT<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">I'll try first</span></button>
+      <button class="mode-btn"    id="btn-full"   onclick="setMode('full')">📖 FULL SOLUTION<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Step-by-step</span></button>
+      <button class="mode-btn"    id="btn-verify" onclick="setMode('verify')">✅ VERIFY<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Check my work</span></button>
+    </div>
+
+    <div id="verify-box"><label>YOUR ANSWER / WORKING</label><textarea id="student-ans" placeholder="Write your answer or working here..."></textarea></div>
+
+    <button id="solve-btn" onclick="solve()">SOLVE →</button>
+
+    <div id="loader">
+      <div class="atom-wrap">
+        <div class="atom">
+          <div class="nucleus"></div>
+          <div class="orbit o1"><div class="elec e1">M</div></div>
+          <div class="orbit o2"><div class="elec e2">P</div></div>
+          <div class="orbit o3"><div class="elec e3">C</div></div>
+        </div>
+        <div class="solving-txt">Solving<span class="sdot">.</span><span class="sdot">.</span><span class="sdot">.</span></div>
+      </div>
+    </div>
+
+    <div class="result-card" id="result-card">
+      <div class="result-head" id="result-head"></div>
+      <div id="verdict-wrap"></div>
+      <div id="motive-wrap"></div>
+      <div class="result-body" id="result-body"></div>
+      <div class="post-actions" id="post-actions">
+        <button class="act-btn act-reveal"  id="reveal-btn"  onclick="revealFull()" style="display:none">Show Full Solution →</button>
+        <button class="act-btn act-similar" id="similar-btn" onclick="getSimilar()">🔁 Similar Questions</button>
+        <button class="act-btn act-theory"  onclick="askTheoryFromSolve()">📚 Explain Theory</button>
+      </div>
+    </div>
+
+    <div id="followup-section">
+      <label>ASK A FOLLOW-UP <span class="fu-count" id="fu-count"></span></label>
+      <textarea id="followup-text" placeholder="e.g. 'Why did you use conservation of momentum here?' or 'Explain Step 3'"></textarea>
+      <button id="followup-btn" onclick="sendFollowup()">Ask →</button>
+    </div>
+
+    <div class="similar-card" id="similar-card">
+      <div class="similar-head">🔁 Similar Practice Questions</div>
+      <div class="similar-body" id="similar-body"></div>
+    </div>
+
+    <div class="sub-banner" id="sub-banner">
+      <div class="sub-title">Unlock Full Access</div>
+      <div class="sub-desc">Your free questions are used up. Subscribe to continue.</div>
+      <div class="sub-price">₹299 <span>/ month</span></div>
+      <div class="sub-feats">
+        <div class="sub-feat">12 questions per day</div>
+        <div class="sub-feat">3 follow-ups free</div>
+        <div class="sub-feat">Unlimited theory</div>
+        <div class="sub-feat">Solutions saved forever</div>
+      </div>
+      <button class="pay-btn" onclick="subscribe()">SUBSCRIBE NOW →</button>
+    </div>
+  </div>
+
+  <!-- THEORY TAB -->
+  <div id="theory-tab" style="display:none">
+    <div class="sec-title">📚 <em>Theory</em> Library</div>
+    <p class="sec-sub">Always free — search any topic from your JEE syllabus.</p>
+    <div class="theory-search">
+      <input type="text" id="theory-input" placeholder="e.g. 'Newton's Laws', 'Gauss Law', 'Integration by Parts'..." onkeydown="if(event.key==='Enter')getTheory()">
+      <button onclick="getTheory()">EXPLAIN →</button>
+    </div>
+    <div class="topic-chips">
+      <div class="chip" onclick="quickTheory('Newton\\'s Laws of Motion')">Newton's Laws</div>
+      <div class="chip" onclick="quickTheory('Work Energy Theorem')">Work-Energy</div>
+      <div class="chip" onclick="quickTheory('Gauss Law Electrostatics')">Gauss Law</div>
+      <div class="chip" onclick="quickTheory('Faraday\\'s Law of Induction')">Faraday's Law</div>
+      <div class="chip" onclick="quickTheory('Integration by parts calculus')">Integration</div>
+      <div class="chip" onclick="quickTheory('Thermodynamics laws JEE')">Thermodynamics</div>
+      <div class="chip" onclick="quickTheory('Photoelectric effect')">Photoelectric Effect</div>
+      <div class="chip" onclick="quickTheory('Organic reaction mechanisms SN1 SN2')">SN1 vs SN2</div>
+      <div class="chip" onclick="quickTheory('Circular motion centripetal force')">Circular Motion</div>
+      <div class="chip" onclick="quickTheory('Coordination compounds chemistry')">Coordination Compounds</div>
+    </div>
+    <div id="theory-loader">
+      <div class="atom-wrap">
+        <div class="atom">
+          <div class="nucleus"></div>
+          <div class="orbit o1"><div class="elec e1">M</div></div>
+          <div class="orbit o2"><div class="elec e2">P</div></div>
+          <div class="orbit o3"><div class="elec e3">C</div></div>
+        </div>
+        <div class="solving-txt">Loading theory<span class="sdot">.</span><span class="sdot">.</span><span class="sdot">.</span></div>
+      </div>
+    </div>
+    <div class="theory-card" id="theory-card">
+      <div class="theory-head" id="theory-head">📚 Theory</div>
+      <div class="theory-body" id="theory-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KEYWORD POPUP -->
+<div class="kw-overlay" id="kw-overlay" onclick="closePopup()"></div>
+<div class="kw-popup" id="kw-popup">
+  <button class="kw-close" onclick="closePopup()">✕</button>
+  <div class="kw-title" id="kw-title"></div>
+  <div class="kw-body" id="kw-body"></div>
+</div>
+
+<footer>Designed by <b>ANISH</b> · Anish Physics Lab · JEE Solver</footer>
+
+<script>
+const API='https://your-backend.vercel.app'; // ← REPLACE WITH YOUR VERCEL URL
+let token=localStorage.getItem('jee_token')||null;
+let userId=localStorage.getItem('jee_userId')||null;
+let userPhone=localStorage.getItem('jee_phone')||null;
+let currentSub='Maths',currentMode='hint';
+let imageBase64=null,imageType=null;
+let sessionId=null,followupCount=0,isPaid=false;
+let savedQ={};
+
+// ── SPLASH ──
+window.onload=()=>{
+  setTimeout(()=>{
+    const sp=document.getElementById('splash');
+    sp.classList.add('splash-hide');
+    setTimeout(()=>{sp.style.display='none';},800);
+    if(token&&userId) showApp();
+    else showPage('welcome-page');
+  },3500);
+};
+
+// ── PAGES ──
+function showPage(id){document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none';});const el=document.getElementById(id);el.style.display='flex';el.classList.add('active');}
+function showLogin(){showPage('login-page');}
+function showPhoneStep(){document.getElementById('phone-step').style.display='block';document.getElementById('otp-step').style.display='none';setMsg('');}
+function setMsg(m,c='var(--muted)'){const e=document.getElementById('login-msg');e.textContent=m;e.style.color=c;}
+
+// ── OTP ──
+async function sendOTP(){
+  const phone=document.getElementById('phone-input').value.trim();
+  if(!/^[6-9]\d{9}$/.test(phone)){setMsg('Valid 10-digit number please.','var(--err)');return;}
+  setMsg('Sending OTP…');
+  try{const r=await apiFetch('/api/send-otp',{phone},false);
+    if(r.success){document.getElementById('phone-step').style.display='none';document.getElementById('otp-step').style.display='block';setMsg('OTP sent!','var(--cor)');}
+    else setMsg(r.error||'Failed.','var(--err)');
+  }catch(e){setMsg('Network error.','var(--err)');}
+}
+async function verifyOTP(){
+  const phone=document.getElementById('phone-input').value.trim();
+  const otp=document.getElementById('otp-input').value.trim();
+  if(otp.length!==6){setMsg('Enter 6-digit OTP','var(--err)');return;}
+  setMsg('Verifying…');
+  try{const r=await apiFetch('/api/verify-otp',{phone,otp},false);
+    if(r.success){token=r.token;userId=r.userId;localStorage.setItem('jee_token',token);localStorage.setItem('jee_userId',userId);localStorage.setItem('jee_phone',phone);userPhone=phone;showApp();}
+    else setMsg(r.error||'Invalid OTP.','var(--err)');
+  }catch(e){setMsg('Network error.','var(--err)');}
+}
+function logout(){['jee_token','jee_userId','jee_phone'].forEach(k=>localStorage.removeItem(k));token=null;userId=null;userPhone=null;document.getElementById('main-header').style.display='none';showPage('welcome-page');}
+
+async function showApp(){
+  showPage('app-page');
+  document.getElementById('main-header').style.display='flex';
+  document.getElementById('app-page').style.display='block';
+  if(userPhone)document.getElementById('user-phone').textContent='📱 '+userPhone;
+  await refreshStatus();
+}
+
+async function refreshStatus(){
+  try{const r=await apiFetch('/api/status?app=jee',null,true,'GET');
+    isPaid=r.isPaid;const qd=document.getElementById('quota-display');
+    if(!r.isPaid){const l=Math.max(0,r.freeLimit-r.freeUsed);qd.textContent=`${l} free left`;qd.className='quota-pill'+(l<=1?' low':'');}
+    else{const l=Math.max(0,r.dailyLimit-r.dailyUsed);qd.textContent=`${l}/12 today`;qd.className='quota-pill paid'+(l<=2?' low':'');}
+  }catch(e){}
+}
+
+// ── TABS ──
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='solver')||(i===1&&tab==='theory')));
+  document.getElementById('solver-tab').style.display=tab==='solver'?'block':'none';
+  document.getElementById('theory-tab').style.display=tab==='theory'?'block':'none';
+}
+
+// ── SUBJECT / MODE ──
+function setSub(el,cls){document.querySelectorAll('.subj-btn').forEach(b=>b.className='subj-btn');el.classList.add('a'+cls);currentSub=el.dataset.sub;}
+function setMode(mode){
+  currentMode=mode;const map={hint:'mh',full:'mf',verify:'mv'};
+  ['hint','full','verify'].forEach(m=>{document.getElementById('btn-'+m).className='mode-btn'+(mode===m?' '+map[m]:'');});
+  document.getElementById('verify-box').style.display=mode==='verify'?'block':'none';
+}
+
+// ── IMAGE ──
+function handleImg(e){if(e.target.files[0])loadImg(e.target.files[0]);}
+function loadImg(file){const r=new FileReader();r.onload=ev=>{imageBase64=ev.target.result.split(',')[1];imageType=file.type||'image/jpeg';document.getElementById('preview-img').src=ev.target.result;document.getElementById('preview-wrap').style.display='block';};r.readAsDataURL(file);}
+function removeImg(){imageBase64=null;imageType=null;document.getElementById('preview-wrap').style.display='none';document.getElementById('preview-img').src='';document.getElementById('img-input').value='';}
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);});
+
+// ── SOLVE ──
+async function solve(){
+  const extraText=document.getElementById('q-text').value.trim();
+  const studentAnswer=document.getElementById('student-ans').value.trim();
+  if(!imageBase64&&!extraText){alert('Please upload an image or type your question.');return;}
+  if(currentMode==='verify'&&!studentAnswer){alert('Please enter your answer to verify.');return;}
+  ['result-card','post-actions','similar-card','followup-section','sub-banner'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('verdict-wrap').innerHTML='';document.getElementById('motive-wrap').innerHTML='';
+  document.getElementById('loader').style.display='block';document.getElementById('solve-btn').disabled=true;
+  savedQ={subject:currentSub,extraText,imageBase64,imageType};
+  try{
+    const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:currentMode,imageBase64,imageType,extraText,studentAnswer,sessionId:null});
+    sessionId=r.sessionId;followupCount=0;showResult(r.answer,currentMode,currentSub);await refreshStatus();
+  }catch(err){
+    if(err.code==='free_exhausted'||err.code==='daily_exhausted'){document.getElementById('sub-banner').style.display='block';document.getElementById('sub-banner').scrollIntoView({behavior:'smooth'});}
+    else alert('Error: '+(err.message||'Something went wrong.'));
+  }
+  document.getElementById('loader').style.display='none';document.getElementById('solve-btn').disabled=false;
+}
+
+// ── SHOW RESULT ──
+function showResult(text,mode,subject){
+  const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
+  const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY'}[mode];
+  const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)'}[mode];
+  document.getElementById('result-head').innerHTML=`<span class="tag" style="color:${sc}">${subject.toUpperCase()}</span><span class="tag" style="color:${mc}">${ml}</span>`;
+
+  // Verdict + motivational note for verify mode
+  if(mode==='verify'){
+    const lc=text.toLowerCase();
+    let vcls,icon,vlabel,mcls,note;
+    if(lc.includes('✅ correct')||lc.includes('✅correct')){
+      vcls='v-ok';icon='✅';vlabel='CORRECT!';mcls='correct';
+      note=`🎉 Brilliant! You got it perfectly! Every step was spot on. Your understanding of <b>${subject}</b> is strong. Keep this confidence going into your exam — you're ready! 🌟`;
+    }else if(lc.includes('❌')||lc.includes('incorrect')||lc.includes('wrong')){
+      vcls='v-bad';icon='❌';vlabel='NEEDS CORRECTION';mcls='wrong';
+      note=`💪 Almost there — don't give up! Making mistakes is how toppers are made. Every JEE rank holder has been exactly where you are right now. Look at the correction below, understand it, try again — you WILL get it.`;
+    }else{
+      vcls='v-mid';icon='⚠️';vlabel='PARTIALLY CORRECT';mcls='partial';
+      note=`👏 Great effort — you're on the right track! You understood the concept correctly — that's the hardest part. Just a small error in execution. Fix that one step and you're there!`;
+    }
+    document.getElementById('verdict-wrap').innerHTML=`<div class="verdict ${vcls}">${icon} ${vlabel}</div>`;
+    document.getElementById('motive-wrap').innerHTML=`<div class="motive-note ${mcls}">${note}<div class="motive-sig">— Anish Sir 🎯</div></div>`;
+  }
+
+  document.getElementById('result-body').innerHTML=formatText(text);
+  document.getElementById('result-card').style.display='block';
+  document.getElementById('post-actions').style.display='flex';
+  document.getElementById('reveal-btn').style.display=mode==='hint'?'inline-block':'none';
+  if(sessionId){document.getElementById('followup-section').style.display='block';updateFU();}
+
+  // Render KaTeX
+  setTimeout(()=>{
+    if(window.renderMathInElement){
+      renderMathInElement(document.getElementById('result-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});
+    }
+  },100);
+
+  document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── FORMAT TEXT ──
+function formatText(raw){
+  // Keywords to hyperlink
+  const keywords={
+    'Conservation of Momentum':{formula:'m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂',def:'Total momentum of a system stays constant when no external force acts on it.',exam:'JEE: Collision problems, rocket propulsion, explosions'},
+    'Newton\'s Second Law':{formula:'F = ma',def:'Force equals mass times acceleration. The rate of change of momentum equals the applied force.',exam:'JEE: Almost every mechanics problem'},
+    'Conservation of Energy':{formula:'KE + PE = constant',def:'Total energy of an isolated system remains constant — energy can neither be created nor destroyed.',exam:'JEE: Projectile, circular motion, SHM'},
+    'Gauss Law':{formula:'∮E·dA = Q/ε₀',def:'Total electric flux through a closed surface equals the enclosed charge divided by ε₀.',exam:'JEE: Symmetric charge distributions'},
+    'Integration by Parts':{formula:'∫u dv = uv − ∫v du',def:'A technique to integrate products of functions by choosing u and dv strategically.',exam:'JEE: ∫xeˣ, ∫x·sin(x), ∫ln(x)'},
+    'Faraday\'s Law':{formula:'EMF = −dΦ/dt',def:'The induced EMF in a circuit equals the negative rate of change of magnetic flux.',exam:'JEE: Electromagnetic induction problems'},
+    'Le Chatelier\'s Principle':{formula:'',def:'If a system at equilibrium is disturbed, it shifts to counteract the disturbance and restore equilibrium.',exam:'JEE/NEET: Chemical equilibrium questions'},
+    'Krebs Cycle':{formula:'',def:'A series of chemical reactions in the mitochondria that produces NADH, FADH₂ and ATP from Acetyl CoA.',exam:'NEET: 2-3 questions guaranteed every year'},
+    'SHM':{formula:'x = A·sin(ωt + φ)',def:'Simple Harmonic Motion — a periodic motion where restoring force is proportional to displacement.',exam:'JEE: Springs, pendulums, LC circuits'},
+  };
+
+  let html='';
+  for(const line of raw.split('\n')){
+    const t=line.trim();
+    if(!t){html+='<br>';continue;}
+    if(/^(step\s*\d+|★|✅|❌|⚠️|✦)/i.test(t)||/^\*\*(step|concept|given|verify|self.check)/i.test(t)){
+      html+=`<h3>${esc(t)}</h3>`;
+    }else if(/[=∫∑√π±≤≥≠∞^÷×]/.test(t)&&t.length>3&&t.length<200&&!/^[A-Z][a-z]{3,}/.test(t)){
+      html+=`<span class="math-line">${esc(t)}</span>`;
+    }else{
+      let processed=esc(line);
+      // Add hyperlinks for keywords
+      Object.keys(keywords).forEach(kw=>{
+        const re=new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+        processed=processed.replace(re,`<span class="kw" onclick="showPopup('${kw.replace(/'/g,"\\'")}','${keywords[kw].def.replace(/'/g,"\\'")}','${keywords[kw].formula.replace(/'/g,"\\'")}','${keywords[kw].exam.replace(/'/g,"\\'")}')">$&</span>`);
+      });
+      html+=`<span>${processed}</span>\n`;
+    }
+  }
+  return html;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── KEYWORD POPUP ──
+function showPopup(term,def,formula,exam){
+  document.getElementById('kw-title').textContent=term;
+  let body=`<b>What it is:</b><br>${def}`;
+  if(formula)body+=`<br><br><b>Formula:</b><span class="kw-formula">${formula}</span>`;
+  if(exam)body+=`<br><b>JEE/NEET:</b><br>${exam}`;
+  document.getElementById('kw-body').innerHTML=body;
+  const popup=document.getElementById('kw-popup');
+  popup.style.top='50%';popup.style.left='50%';popup.style.transform='translate(-50%,-50%)';
+  popup.classList.add('show');document.getElementById('kw-overlay').classList.add('show');
+}
+function closePopup(){document.getElementById('kw-popup').classList.remove('show');document.getElementById('kw-overlay').classList.remove('show');}
+
+// ── REVEAL FULL ──
+async function revealFull(){
+  document.getElementById('reveal-btn').style.display='none';
+  document.getElementById('loader').style.display='block';document.getElementById('solve-btn').disabled=true;
+  try{const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:'full',imageBase64,imageType,extraText:document.getElementById('q-text').value.trim(),sessionId});showResult(r.answer,'full',currentSub);}
+  catch(e){alert('Error: '+e.message);}
+  document.getElementById('loader').style.display='none';document.getElementById('solve-btn').disabled=false;
+}
+
+// ── FOLLOW-UP ──
+function updateFU(){document.getElementById('fu-count').textContent=`${followupCount}/3 used`;document.getElementById('followup-btn').disabled=followupCount>=3;if(followupCount>=3)document.getElementById('followup-text').placeholder='Max 3 follow-ups reached. Ask a new question.';}
+async function sendFollowup(){
+  const text=document.getElementById('followup-text').value.trim();
+  if(!text||followupCount>=3)return;
+  document.getElementById('followup-btn').disabled=true;document.getElementById('loader').style.display='block';
+  try{const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:'full',imageBase64,imageType,extraText:'FOLLOW-UP: '+text,sessionId});followupCount++;updateFU();document.getElementById('followup-text').value='';showResult(r.answer,'full',currentSub);}
+  catch(err){if(err.code==='followup_exhausted')alert('Max 3 follow-ups reached.');else alert('Error: '+err.message);}
+  document.getElementById('loader').style.display='none';document.getElementById('followup-btn').disabled=false;
+}
+
+// ── SIMILAR ──
+async function getSimilar(){
+  document.getElementById('similar-card').style.display='none';document.getElementById('loader').style.display='block';document.getElementById('similar-btn').disabled=true;
+  try{
+    const r=await apiFetch('/api/similar',{app:'jee',subject:currentSub,imageBase64,imageType,extraText:document.getElementById('q-text').value.trim()});
+    const lines=r.questions.split('\n').map(l=>l.trim()).filter(Boolean);
+    let qs=[],cur='';
+    for(const l of lines){if(/^\d+[\.\)]\s/.test(l)){if(cur)qs.push(cur.trim());cur=l.replace(/^\d+[\.\)]\s*/,'');}else cur+=' '+l;}
+    if(cur)qs.push(cur.trim());if(!qs.length)qs=[r.questions];
+    // Parse questions and answers
+    document.getElementById('similar-body').innerHTML=qs.slice(0,4).map(q=>{
+      const parts=q.split(/★\s*Answer:|Answer:/i);
+      const qText=parts[0].trim();const ans=parts[1]?parts[1].trim():'';
+      return `<div class="q-item">${esc(qText)}${ans?`<div class="q-answer"><b>★ Answer:</b> ${esc(ans)}</div>`:''}</div>`;
+    }).join('');
+    document.getElementById('similar-card').style.display='block';document.getElementById('similar-card').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){alert('Error.');}
+  document.getElementById('loader').style.display='none';document.getElementById('similar-btn').disabled=false;
+}
+
+// ── THEORY ──
+function askTheoryFromSolve(){switchTab('theory');document.getElementById('theory-input').focus();}
+async function getTheory(){const topic=document.getElementById('theory-input').value.trim();if(!topic){alert('Please enter a topic.');return;}await fetchTheory(topic);}
+async function quickTheory(topic){document.getElementById('theory-input').value=topic;await fetchTheory(topic);}
+async function fetchTheory(topic){
+  document.getElementById('theory-card').style.display='none';document.getElementById('theory-loader').style.display='block';
+  try{
+    const r=await apiFetch('/api/theory',{app:'jee',subject:currentSub,topic});
+    document.getElementById('theory-head').textContent='📚 '+topic;
+    document.getElementById('theory-body').innerHTML=formatText(r.theory);
+    document.getElementById('theory-card').style.display='block';
+    setTimeout(()=>{if(window.renderMathInElement)renderMathInElement(document.getElementById('theory-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});},100);
+    document.getElementById('theory-card').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){alert('Error fetching theory.');}
+  document.getElementById('theory-loader').style.display='none';
+}
+
+// ── SUBSCRIBE ──
+async function subscribe(){
+  try{
+    const r=await apiFetch('/api/subscribe',{app:'jee',phone:userPhone});
+    const rzp=new Razorpay({key:r.razorpayKeyId,subscription_id:r.subscriptionId,name:'ANISH.AI JEE',description:'12 questions/day · ₹299/month',prefill:{contact:userPhone},theme:{color:'#ff6a00'},handler:async()=>{await refreshStatus();alert('✅ Subscribed! 12 questions/day unlocked. Resets at 5:00 AM daily.');document.getElementById('sub-banner').style.display='none';}});
+    rzp.open();
+  }catch(e){alert('Payment error. Try again.');}
+}
+
+// ── API ──
+async function apiFetch(path,body,auth=true,method='POST'){
+  const headers={'Content-Type':'application/json'};
+  if(auth&&token)headers['Authorization']='Bearer '+token;
+  const opts={method,headers};if(method!=='GET'&&body)opts.body=JSON.stringify(body);
+  const res=await fetch(API+path,opts);const data=await res.json();
+  if(!res.ok){const err=new Error(data.message||data.error||'Failed');err.code=data.error;throw err;}
+  return data;
+}
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+</html>
