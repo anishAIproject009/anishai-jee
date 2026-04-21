@@ -592,7 +592,7 @@ let savedQ={};
 
 // ── SPLASH ──
 window.onload=()=>{
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     const sp=document.getElementById('splash');
     sp.classList.add('splash-hide');
     setTimeout(()=>{sp.style.display='none';},800);
