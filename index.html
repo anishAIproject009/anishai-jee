@@ -642,7 +642,7 @@ async function refreshStatus(){
     isPaid=r.isPaid;const qd=document.getElementById('quota-display');
     if(!r.isPaid){const l=Math.max(0,r.freeLimit-r.freeUsed);qd.textContent=`${l} free left`;qd.className='quota-pill'+(l<=1?' low':'');}
     else{const l=Math.max(0,r.dailyLimit-r.dailyUsed);qd.textContent=`${l}/12 today`;qd.className='quota-pill paid'+(l<=2?' low':'');}
-  }catch(e){}
+  }catch(e){token=null;userId=null;localStorage.clear();showPage('login-page');}
 }
 
 // ── TABS ──
@@ -881,7 +881,7 @@ async function apiFetch(path,body,auth=true,method='POST'){
   if(auth&&token)headers['Authorization']='Bearer '+token;
   const opts={method,headers};if(method!=='GET'&&body)opts.body=JSON.stringify(body);
   const res=await fetch(API+path,opts);const data=await res.json();
-  if(!res.ok){const err=new Error(data.message||data.error||'Failed');err.code=data.error;throw err;}
+  if(res.status===401){token=null;userId=null;localStorage.clear();showPage('login-page');throw new Error('Session expired');}if(!res.ok){const err=new Error(data.message||data.error||'Failed');err.code=data.error;throw err;}
   return data;
 }
 </script>
