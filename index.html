@@ -459,12 +459,12 @@ footer b{color:var(--or1);}
       <button class="subj-btn"    data-sub="Chemistry" onclick="setSub(this,'c')">🧪 Chemistry</button>
     </div>
 
-    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('img-input').click()">
+    <div class="upload-zone" id="drop-zone">
       <input type="file" id="img-input" accept="image/*" capture="environment" onchange="handleImg(event)" style="display:none">
       <input type="file" id="img-gallery" accept="image/*" onchange="handleImg(event)" style="display:none">
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <button type="button" onclick="document.getElementById('img-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.4);background:rgba(255,106,0,0.1);color:var(--or1);font-size:0.95rem;cursor:pointer">📷 Camera</button>
-        <button type="button" onclick="document.getElementById('img-gallery').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.2);background:rgba(255,106,0,0.05);color:var(--text);font-size:0.95rem;cursor:pointer">🖼️ Gallery</button>
+        <button type="button" onclick="event.stopPropagation();document.getElementById('img-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.4);background:rgba(255,106,0,0.1);color:var(--or1);font-size:0.95rem;cursor:pointer">📷 Camera</button>
+        <button type="button" onclick="event.stopPropagation();document.getElementById('img-gallery').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.2);background:rgba(255,106,0,0.05);color:var(--text);font-size:0.95rem;cursor:pointer">🖼️ Gallery</button>
       </div>
       <div class="up-sub" style="margin-top:10px">or drag & drop · JPG · PNG · WEBP</div>
     </div>
