@@ -6,8 +6,10 @@
 <title>ANISH.AI — JEE Solver</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<!-- Supabase SDK injected here -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --bg:#09080a;--card:#141200;--card2:#1c1900;
@@ -44,7 +46,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 /* Footer */
 .asphyc-footer{text-align:center;padding:24px 0 16px;font-size:0.75rem;color:var(--muted);opacity:0.5;letter-spacing:0.5px;font-family:'Syne',sans-serif; margin-top: auto;}
 
-/* ── DARK MODE TOGGLE (WITH ANIMATIONS) ── */
+/* ── DARK/LIGHT MODE TOGGLE (WITH ANIMATIONS) ── */
 #dm-toggle {
     position: fixed;
     bottom: 22px;
@@ -641,21 +643,29 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-const API='https://anish-ai-theta.vercel.app'; // ← REPLACE WITH YOUR VERCEL URL
-let token=localStorage.getItem('jee_token')||null;
-let userId=localStorage.getItem('jee_userId')||null;
-let userPhone=localStorage.getItem('jee_phone')||null;
-let currentSub='Maths',currentMode='hint';
-let imageBase64=null,imageType=null;
-let sessionId=null,followupCount=0,isPaid=false;
-let savedQ={};
+// ==========================================
+// ⚠️ MANDATORY: INSERT YOUR SUPABASE KEYS ⚠️
+// ==========================================
+const SUPABASE_URL = 'https://druwtgfbjebcwgbhgjci.supabase.co'; // ⚠️ Must be a valid URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRydXd0Z2ZiamViY3dnYmhnamNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDkzMDAsImV4cCI6MjA5MjE4NTMwMH0.1pmrXsJkUgd4DJFszABP114f6aZba25b1T1anfyjgwI';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const API = 'https://anish-ai-theta.vercel.app'; // Your Vercel API
+
+let session = null;
+let userId = null;
+let userPhone = null;
+
+let currentSub = 'Maths', currentMode = 'hint';
+let imageBase64 = null, imageType = null;
+let sessionId = null, followupCount = 0, isPaid = false;
+let savedQ = {};
 
 // ── DARK MODE ──
 function toggleDM() {
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('jee-theme', isLight ? 'light' : 'dark');
 }
-// Apply saved theme on load (default is dark)
 if (localStorage.getItem('jee-theme') === 'light') {
     document.body.classList.add('light-mode');
 }
@@ -670,65 +680,143 @@ function initWatermark(phone) {
     wm.innerHTML = html;
 }
 
-// ── SPLASH ──
-window.onload=()=>{
-  setTimeout(async ()=>{
-    const sp=document.getElementById('splash');
+// ── SPLASH & INIT NATIVE AUTH ──
+window.onload = async () => {
+  setTimeout(async () => {
+    const sp = document.getElementById('splash');
     sp.classList.add('splash-hide');
-    setTimeout(()=>{sp.style.display='none';},800);
-    if(token&&userId) showApp();
-    else showPage('welcome-page');
-  },3500);
+    setTimeout(() => { sp.style.display = 'none'; }, 800);
+    
+    try {
+      // Check Supabase for an active session natively
+      const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
+      session = currentSession;
+
+      if (session) {
+        userId = session.user.id;
+        userPhone = session.user.phone;
+        showApp();
+      } else {
+        showPage('welcome-page');
+      }
+    } catch (err) {
+      console.error("Supabase init error:", err);
+      showPage('welcome-page');
+    }
+  }, 3500);
 };
 
 // ── PAGES ──
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
-  const el=document.getElementById(id);
-  // Ensure vertical layout for the app-page, but preserve flex centering for welcome/login
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  const el = document.getElementById(id);
   el.style.display = (id === 'app-page') ? 'block' : 'flex';
   el.classList.add('active');
 }
 
-function showLogin(){showPage('login-page');}
-async function showPhoneStep(){document.getElementById('phone-step').style.display='block';document.getElementById('otp-step').style.display='none';setMsg('');}
-function setMsg(m,c='var(--muted)'){const e=document.getElementById('login-msg');e.textContent=m;e.style.color=c;}
+function showLogin() { showPage('login-page'); }
+async function showPhoneStep() { document.getElementById('phone-step').style.display='block'; document.getElementById('otp-step').style.display='none'; setMsg(''); }
+function setMsg(m, c='var(--muted)') { const e=document.getElementById('login-msg'); e.textContent=m; e.style.color=c; }
 
-// ── OTP ──
-async function sendOTP(){
-  const phone=document.getElementById('phone-input').value.trim();
-  if(!/^[6-9]\d{9}$/.test(phone)){setMsg('Valid 10-digit number please.','var(--err)');return;}
+// ── NATIVE SUPABASE OTP FLOW ──
+async function sendOTP() {
+  let phone = document.getElementById('phone-input').value.trim();
+  if(!/^[6-9]\d{9}$/.test(phone)) { setMsg('Valid 10-digit number please.','var(--err)'); return; }
+  
+  // Format for Supabase (E.164)
+  phone = '+91' + phone; 
   setMsg('Sending OTP…');
-  try{const r=await apiFetch('/api/send-otp',{phone},false);
-    if(r.success){document.getElementById('phone-step').style.display='none';document.getElementById('otp-step').style.display='block';setMsg('OTP sent!','var(--cor)');}
-    else setMsg(r.error||'Failed.','var(--err)');
-  }catch(e){setMsg('Network error.','var(--err)');}
-}
-async function verifyOTP(){
-  const phone=document.getElementById('phone-input').value.trim();
-  const otp=document.getElementById('otp-input').value.trim();
-  if(otp.length!==6){setMsg('Enter 6-digit OTP','var(--err)');return;}
-  setMsg('Verifying…');
-  try{const r=await apiFetch('/api/verify-otp',{phone,otp},false);
-    if(r.success){token=r.token;userId=r.userId;localStorage.setItem('jee_token',token);localStorage.setItem('jee_userId',userId);localStorage.setItem('jee_phone',phone);userPhone=phone;showApp();}
-    else setMsg(r.error||'Invalid OTP.','var(--err)');
-  }catch(e){setMsg('Network error.','var(--err)');}
-}
-async function logout(){['jee_token','jee_userId','jee_phone'].forEach(k=>localStorage.removeItem(k));token=null;userId=null;userPhone=null;document.getElementById('main-header').style.display='none';showPage('welcome-page');}
 
-async function showApp(){
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithOtp({
+      phone: phone,
+    });
+
+    if (error) {
+      setMsg(error.message, 'var(--err)');
+    } else {
+      document.getElementById('phone-step').style.display = 'none';
+      document.getElementById('otp-step').style.display = 'block';
+      setMsg('OTP sent!', 'var(--cor)');
+    }
+  } catch (err) {
+    if (err.message === 'Failed to fetch') {
+      setMsg('Network Error. Did you insert your actual Supabase URL?', 'var(--err)');
+    } else {
+      setMsg('An error occurred.', 'var(--err)');
+    }
+    console.error(err);
+  }
+}
+
+async function verifyOTP() {
+  let phone = document.getElementById('phone-input').value.trim();
+  phone = '+91' + phone;
+  const otp = document.getElementById('otp-input').value.trim();
+  
+  if (otp.length !== 6) { setMsg('Enter 6-digit OTP', 'var(--err)'); return; }
+  setMsg('Verifying…');
+
+  try {
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      phone: phone,
+      token: otp,
+      type: 'sms'
+    });
+
+    if (error) {
+      setMsg(error.message, 'var(--err)');
+    } else {
+      session = data.session;
+      userId = data.user.id;
+      userPhone = data.user.phone;
+      showApp();
+    }
+  } catch (err) {
+    if (err.message === 'Failed to fetch') {
+      setMsg('Network Error. Did you insert your actual Supabase URL?', 'var(--err)');
+    } else {
+      setMsg('An error occurred.', 'var(--err)');
+    }
+    console.error(err);
+  }
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  session = null;
+  userId = null;
+  userPhone = null;
+  document.getElementById('main-header').style.display = 'none';
+  showPage('welcome-page');
+}
+
+// ── APP START ──
+async function showApp() {
   showPage('app-page');
-  document.getElementById('main-header').style.display='flex';
-  if(userPhone)document.getElementById('user-phone').textContent='📱 '+userPhone;
+  document.getElementById('main-header').style.display = 'flex';
+  if (userPhone) document.getElementById('user-phone').textContent = '📱 ' + userPhone.replace('+91', '');
   await refreshStatus();
 }
 
-async function refreshStatus(){
-  try{const r=await apiFetch('/api/status?app=jee',null,true,'GET');
-    isPaid=r.isPaid;const qd=document.getElementById('quota-display');
-    if(!r.isPaid){const l=Math.max(0,r.freeLimit-r.freeUsed);qd.textContent=`${l} free left`;qd.className='quota-pill'+(l<=1?' low':'');}
-    else{const l=Math.max(0,r.dailyLimit-r.dailyUsed);qd.textContent=`${l}/12 today`;qd.className='quota-pill paid'+(l<=2?' low':'');}
-  }catch(e){token=null;userId=null;localStorage.clear();showPage('login-page');}
+async function refreshStatus() {
+  try {
+    const r = await apiFetch('/api/status?app=jee', null, true, 'GET');
+    isPaid = r.isPaid;
+    const qd = document.getElementById('quota-display');
+    if (!r.isPaid) {
+      const l = Math.max(0, r.freeLimit - r.freeUsed);
+      qd.textContent = `${l} free left`;
+      qd.className = 'quota-pill' + (l <= 1 ? ' low' : '');
+    } else {
+      const l = Math.max(0, r.dailyLimit - r.dailyUsed);
+      qd.textContent = `${l}/12 today`;
+      qd.className = 'quota-pill paid' + (l <= 2 ? ' low' : '');
+    }
+  } catch (e) {
+    console.error("Status check failed:", e);
+    // Let apiFetch handle the logout if it's a 401
+  }
 }
 
 // ── TABS ──
@@ -818,14 +906,10 @@ function showResult(text,mode,subject){
 
 // ── FORMAT TEXT ──
 function formatText(raw){
-  raw=raw.replace(/\*\*\*(.+?)\*\*\*/g,'|||BI:$1|||');
-  raw=raw.replace(/\*\*(.+?)\*\*/g,'|||B:$1|||');
-  raw=raw.replace(/\*([^\n]+?)\*/g,'|||I:$1|||');
-  // Markdown: convert before line processing
-  raw = raw.replace(/\*\*\*(.+?)\*\*\*/g, '|||BOLDITALIC:$1|||');
-  raw = raw.replace(/\*\*(.+?)\*\*/g, '|||BOLD:$1|||');
-  raw = raw.replace(/\*(.+?)\*/g, '|||ITALIC:$1|||');
-  // Keywords to hyperlink
+  raw = raw.replace(/\*\*\*(.+?)\*\*\*/g, '|||BI:$1|||');
+  raw = raw.replace(/\*\*(.+?)\*\*/g, '|||B:$1|||');
+  raw = raw.replace(/\*([^\s\*][^\n\*]*?)\*/g, '|||I:$1|||');
+
   const keywords={
     'Conservation of Momentum':{formula:'m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂',def:'Total momentum of a system stays constant when no external force acts on it.',exam:'JEE: Collision problems, rocket propulsion, explosions'},
     'Newton\'s Second Law':{formula:'F = ma',def:'Force equals mass times acceleration. The rate of change of momentum equals the applied force.',exam:'JEE: Almost every mechanics problem'},
@@ -838,36 +922,55 @@ function formatText(raw){
     'SHM':{formula:'x = A·sin(ωt + φ)',def:'Simple Harmonic Motion — a periodic motion where restoring force is proportional to displacement.',exam:'JEE: Springs, pendulums, LC circuits'},
   };
 
-  let html='';
-  for(const line of raw.split('\n')){
-    const t=line.trim();
-    if(!t){html+='<br>';continue;}
-    if(/^(step\s*\d+|★|✅|❌|⚠️|✦)/i.test(t)||/^\*\*(step|concept|given|verify|self.check)/i.test(t)){
-      html+=`<h3>${esc(t)}</h3>`;
-    }else if(/[=∫∑√π±≤≥≠∞^÷×]/.test(t)&&t.length>3&&t.length<200&&!/^[A-Z][a-z]{3,}/.test(t)){
-      html+=`<span class="math-line">${esc(t)}</span>`;
-    }else{
-      let processed=esc(line);
-      // Add hyperlinks for keywords
-      Object.keys(keywords).forEach(kw=>{
-        const re=new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
-        processed=processed.replace(re,`<span class="kw" onclick="showPopup('${kw.replace(/'/g,"\\'")}','${keywords[kw].def.replace(/'/g,"\\'")}','${keywords[kw].formula.replace(/'/g,"\\'")}','${keywords[kw].exam.replace(/'/g,"\\'")}')">$&</span>`);
+  let html = '';
+  const lines = raw.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    let t = lines[i].trim();
+    if (!t) { html += '<br>'; continue; }
+
+    if (/^###\s+(.+)/.test(t)) {
+      html += `<h3 style="margin-top:14px; color:var(--or1); font-family:'Syne',sans-serif;">${esc(t.replace(/^###\s+/, ''))}</h3>`;
+      continue;
+    }
+    if (/^##\s+(.+)/.test(t)) {
+      html += `<h2 style="margin-top:16px; color:var(--text); font-family:'Syne',sans-serif; font-size:1.1rem;">${esc(t.replace(/^##\s+/, ''))}</h2>`;
+      continue;
+    }
+    if (/^#\s+(.+)/.test(t)) {
+      html += `<h2 style="margin-top:18px; color:var(--text); font-family:'Syne',sans-serif; font-size:1.3rem;">${esc(t.replace(/^#\s+/, ''))}</h2>`;
+      continue;
+    }
+
+    if (/^[\*\-]\s+(.+)/.test(t)) {
+      html += `<div style="margin-left: 18px; display: list-item; list-style-type: disc; color: var(--text);">${esc(t.replace(/^[\*\-]\s+/, ''))}</div>`;
+      continue;
+    }
+
+    if (/^(step\s*\d+|★|✅|❌|⚠️|✦)/i.test(t) || /^\|\|\|B:(step|concept|given|verify|self\.check)/i.test(t)) {
+      html += `<h3>${esc(t)}</h3>`;
+      continue;
+    }
+
+    const wordCount = t.split(/\s+/).length;
+    const hasMathSymbol = /[=∫∑√π±≤≥≠∞^÷×→]/.test(t);
+    const looksLikeSentence = /^[A-Z]/.test(t) && wordCount > 5; 
+
+    if (hasMathSymbol && !looksLikeSentence && t.length < 150) {
+      html += `<span class="math-line">${esc(t)}</span>`;
+    } else {
+      let processed = esc(t);
+      Object.keys(keywords).forEach(kw => {
+        const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        processed = processed.replace(re, `<span class="kw" onclick="showPopup('${kw.replace(/'/g, "\\'")}', '${keywords[kw].def.replace(/'/g, "\\'")}', '${keywords[kw].formula.replace(/'/g, "\\'")}', '${keywords[kw].exam.replace(/'/g, "\\'")}')">$&</span>`);
       });
-      html+=`<span>${processed}</span>\n`;
+      html += `<span>${processed}</span>\n`;
     }
   }
-  
-  html = html.replace(/<span>\*\*\*(.+?)\*\*\*<\/span>/g, '<span><strong><em>$1</em></strong></span>');
-  html = html.replace(/<span>\*\*(.+?)\*\*<\/span>/g, '<span><strong>$1</strong></span>');
-  html = html.replace(/<span>\*(.+?)\*<\/span>/g, '<span><em>$1</em></span>');
-  html = html.replace(/<span>#{3} (.+?)<\/span>/g, '<span><h3 style="margin:4px 0;font-size:1em;">$1</h3></span>');
-  html = html.replace(/<span>#{2} (.+?)<\/span>/g, '<span><h2 style="margin:6px 0;font-size:1.1em;">$1</h2></span>');
-  html = html.replace(/<span># (.+?)<\/span>/g, '<span><h2 style="margin:8px 0;font-size:1.2em;color:var(--or1);">$1</h2></span>');
-  html = html.replace(/<span>---+<\/span>/g, '<hr style="border-color:var(--brd2);margin:8px 0;">');
-  
-  html=html.replace(/\|\|\|BI:([\s\S]+?)\|\|\|/g,'<strong><em>$1</em></strong>');
-  html=html.replace(/\|\|\|B:([\s\S]+?)\|\|\|/g,'<strong>$1</strong>');
-  html=html.replace(/\|\|\|I:([\s\S]+?)\|\|\|/g,'<em>$1</em>');
+
+  html = html.replace(/\|\|\|BI:([\s\S]+?)\|\|\|/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\|\|\|B:([\s\S]+?)\|\|\|/g, '<strong>$1</strong>');
+  html = html.replace(/\|\|\|I:([\s\S]+?)\|\|\|/g, '<em>$1</em>');
   return html;
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -916,7 +1019,7 @@ async function fetchDiagram() {
       const solution = document.getElementById('result-body').innerText || '';
       const r = await fetch(API + '/api/diagram', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (session ? session.access_token : '') },
         body: JSON.stringify({ subject: currentSub, question: savedQ.extraText || '', solution: solution, sessionId: sessionId })
       });
       const d = await r.json();
@@ -945,7 +1048,6 @@ async function getSimilar(){
     let qs=[],cur='';
     for(const l of lines){if(/^\d+[\.\)]\s/.test(l)){if(cur)qs.push(cur.trim());cur=l.replace(/^\d+[\.\)]\s*/,'');}else cur+=' '+l;}
     if(cur)qs.push(cur.trim());if(!qs.length)qs=[r.questions];
-    // Parse questions and answers
     document.getElementById('similar-body').innerHTML=qs.slice(0,4).map(q=>{
       const parts=q.split(/★\s*Answer:|Answer:/i);
       const qText=parts[0].trim();const ans=parts[1]?parts[1].trim():'';
@@ -983,12 +1085,31 @@ async function subscribe(){
 }
 
 // ── API ──
-async function apiFetch(path,body,auth=true,method='POST'){
-  const headers={'Content-Type':'application/json'};
-  if(auth&&token)headers['Authorization']='Bearer '+token;
-  const opts={method,headers};if(method!=='GET'&&body)opts.body=JSON.stringify(body);
-  const res=await fetch(API+path,opts);const data=await res.json();
-  if(res.status===401){token=null;userId=null;localStorage.clear();showPage('login-page');throw new Error('Session expired');}if(!res.ok){const err=new Error(data.message||data.error||'Failed');err.code=data.error;throw err;}
+async function apiFetch(path, body, auth = true, method = 'POST') {
+  const headers = { 'Content-Type': 'application/json' };
+  
+  if (auth && session) {
+    // Inject the Native Supabase JWT
+    headers['Authorization'] = 'Bearer ' + session.access_token;
+  }
+  
+  const opts = { method, headers };
+  if (method !== 'GET' && body) opts.body = JSON.stringify(body);
+  
+  const res = await fetch(API + path, opts);
+  const data = await res.json();
+  
+  if (res.status === 401) {
+    await logout(); // Token expired or invalid
+    throw new Error('Session expired');
+  }
+  
+  if (!res.ok) {
+    const err = new Error(data.message || data.error || 'Failed');
+    err.code = data.error;
+    throw err;
+  }
+  
   return data;
 }
 </script>
