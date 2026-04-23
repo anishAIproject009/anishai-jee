@@ -511,6 +511,7 @@ footer b{color:var(--or1);}
       <div id="verdict-wrap"></div>
       <div id="motive-wrap"></div>
       <div class="result-body" id="result-body"></div>
+      <div class="ai-disclaimer">⚠️ AI-generated content is for learning assistance only. Verify with your textbook or teacher before exam use.</div>
       <div class="post-actions" id="post-actions">
         <button class="act-btn act-reveal"  id="reveal-btn"  onclick="revealFull()" style="display:none">Show Full Solution →</button>
         <button class="act-btn act-similar" id="similar-btn" onclick="getSimilar()">🔁 Similar Questions</button>
@@ -590,6 +591,15 @@ footer b{color:var(--or1);}
   <button class="kw-close" onclick="closePopup()">✕</button>
   <div class="kw-title" id="kw-title"></div>
   <div class="kw-body" id="kw-body"></div>
+
+  <!-- Dark Mode Toggle -->
+  <button id="dm-toggle" title="Toggle dark/light mode" onclick="toggleDarkMode()">
+    <span class="icon-moon">🌙</span>
+    <span class="icon-sun">☀️</span>
+  </button>
+
+  <!-- Footer -->
+  <div class="asphyc-footer">Made with ❤️ by Team ASPHYC</div>
 </div>
 
 <footer>Designed by <b>ANISH</b> · Anish Physics Lab · JEE Solver</footer>
@@ -930,6 +940,14 @@ async function apiFetch(path,body,auth=true,method='POST'){
   }
 
 
+
+  // ── DARK MODE ──
+  function toggleDarkMode() {
+    const isLight = document.body.classList.toggle('light-mode');
+    localStorage.setItem('jee-theme', isLight ? 'light' : 'dark');
+  }
+  // Apply saved theme on load
+  if (localStorage.getItem('jee-theme') === 'light') document.body.classList.add('light-mode');
 </script>
 </body>
 </html>
