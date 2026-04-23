@@ -340,10 +340,7 @@ body.light-mode #dm-toggle .m{display:none;}
   font-size:0.71rem;color:var(--muted);line-height:1.5;opacity:0.72;
 }
 /* ── FOOTER ── */
-.asphyc-footer{
-  text-align:center;padding:16px 0 8px;
-  font-size:0.67rem;color:var(--muted);opacity:0.4;letter-spacing:0.5px;
-}
+.asphyc-footer{text-align:center;padding:16px 0 8px;font-size:0.7rem;color:var(--muted);opacity:0.55;letter-spacing:0.5px;}
 </style>
 </head>
 <body>
@@ -459,7 +456,7 @@ body.light-mode #dm-toggle .m{display:none;}
     </div>
     <button class="wc-cta" onclick="showLogin()">START FOR FREE →</button>
     <div class="wc-free-note">🎁 5 free questions · No payment needed</div>
-    <div class="wc-footer">Designed by <b>ANISH</b> · Anish Physics Lab</div>
+    
   </div>
 </div>
 
@@ -631,7 +628,7 @@ body.light-mode #dm-toggle .m{display:none;}
   <div class="kw-body" id="kw-body"></div>
 
   <!-- Dark Mode Toggle -->
-  <button id="dm-toggle" title="Toggle dark/light mode" onclick="toggleDarkMode()">
+  <button id="dm-toggle" title="Toggle dark/light mode" onclick="toggleDM()">
     <span class="icon-moon">🌙</span>
     <span class="icon-sun">☀️</span>
   </button>
@@ -640,10 +637,10 @@ body.light-mode #dm-toggle .m{display:none;}
   <div class="asphyc-footer">Made with ❤️ by Team ASPHYC</div>
 </div>
 
-<footer>Designed by <b>ANISH</b> · Anish Physics Lab · JEE Solver</footer>
+
 
   <button id="dm-toggle" onclick="toggleDM()" title="Toggle theme"><span class="m">🌙</span><span class="s">☀️</span></button>
-  <div class="asphyc-footer">Made with ❤️ by Team ASPHYC</div>
+  
 
 <script>
 const API='https://anish-ai-theta.vercel.app'; // ← REPLACE WITH YOUR VERCEL URL
