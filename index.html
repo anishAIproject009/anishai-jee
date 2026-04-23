@@ -511,6 +511,7 @@ footer b{color:var(--or1);}
       <div id="verdict-wrap"></div>
       <div id="motive-wrap"></div>
       <div class="result-body" id="result-body"></div>
+      <div class="ai-disclaimer">⚠️ AI-generated responses are for learning assistance only. Always verify with your textbook or teacher before exam use.</div>
       <div class="ai-disclaimer">⚠️ AI-generated content is for learning assistance only. Verify with your textbook or teacher before exam use.</div>
       <div class="post-actions" id="post-actions">
         <button class="act-btn act-reveal"  id="reveal-btn"  onclick="revealFull()" style="display:none">Show Full Solution →</button>
@@ -603,6 +604,9 @@ footer b{color:var(--or1);}
 </div>
 
 <footer>Designed by <b>ANISH</b> · Anish Physics Lab · JEE Solver</footer>
+
+  <button id="dm-toggle" onclick="toggleDM()" title="Toggle theme"><span class="m">🌙</span><span class="s">☀️</span></button>
+  <div class="asphyc-footer">Made with ❤️ by Team ASPHYC</div>
 
 <script>
 const API='https://anish-ai-theta.vercel.app'; // ← REPLACE WITH YOUR VERCEL URL
@@ -948,6 +952,9 @@ async function apiFetch(path,body,auth=true,method='POST'){
   }
   // Apply saved theme on load
   if (localStorage.getItem('jee-theme') === 'light') document.body.classList.add('light-mode');
+
+  function toggleDM(){const l=document.body.classList.toggle('light-mode');localStorage.setItem('jee-dm',l?'1':'0');}
+  if(localStorage.getItem('jee-dm')==='1')document.body.classList.add('light-mode');
 </script>
 </body>
 </html>
