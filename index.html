@@ -6,7 +6,6 @@
 <title>ANISH.AI — JEE Solver</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<!-- SDKs injected here -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
@@ -47,7 +46,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 /* Footer */
 .asphyc-footer{text-align:center;padding:24px 0 16px;font-size:0.75rem;color:var(--muted);opacity:0.5;letter-spacing:0.5px;font-family:'Syne',sans-serif; margin-top: auto;}
 
-/* ── DARK/LIGHT MODE TOGGLE ── */
+/* ── DARK/LIGHT MODE TOGGLE (WITH ANIMATIONS) ── */
 #dm-toggle {
     position: fixed;
     bottom: 22px;
@@ -556,7 +555,6 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
         <button class="act-btn act-theory"  onclick="askTheoryFromSolve()">📚 Explain Theory</button>
         <button class="act-btn act-diagram" id="diagram-btn" onclick="fetchDiagram()">📐 Show Diagram</button>
         
-        <!-- PUBLISHING EXPORTS -->
         <button class="act-btn act-pdf" id="pdf-btn" onclick="downloadPDF()" style="background:rgba(32,160,96,0.1); color:var(--cor); border-color:var(--cor);">📄 Download PDF</button>
         <button class="act-btn act-latex" onclick="downloadLaTeX()" style="background:rgba(192,128,240,0.1); color:var(--verify); border-color:var(--verify);">📝 Download LaTeX</button>
       </div>
@@ -856,7 +854,7 @@ async function solve(){
 
 // ── SHOW RESULT ──
 function showResult(text,mode,subject){
-  lastRawSolution = text; // Save for LaTeX export
+  lastRawSolution = text;
 
   const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
   const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY'}[mode];
@@ -1078,7 +1076,11 @@ async function subscribe(){
 // ── API ──
 async function apiFetch(path, body, auth = true, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
-  if (auth && session) headers['Authorization'] = 'Bearer ' + session.access_token;
+  
+  if (auth && session) {
+    headers['Authorization'] = 'Bearer ' + session.access_token;
+  }
+  
   const opts = { method, headers };
   if (method !== 'GET' && body) opts.body = JSON.stringify(body);
   
@@ -1086,14 +1088,16 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
   const data = await res.json();
   
   if (res.status === 401) {
-    await logout();
+    await logout(); // Token expired or invalid
     throw new Error('Session expired');
   }
+  
   if (!res.ok) {
     const err = new Error(data.message || data.error || 'Failed');
     err.code = data.error;
     throw err;
   }
+  
   return data;
 }
 
@@ -1105,18 +1109,16 @@ async function downloadPDF() {
   btn.innerHTML = '⏳ Generating PDF...';
   btn.disabled = true;
 
+  let printContainer = null;
+
   try {
-    const printContainer = document.createElement('div');
-    
-    // Position it invisibly but keep it in the DOM flow so it paints correctly
-    printContainer.style.position = 'absolute';
+    printContainer = document.createElement('div');
+    // FIX: Using z-index instead of left:-9999px prevents html2canvas from capturing a blank image
+    printContainer.style.position = 'fixed';
     printContainer.style.top = '0';
     printContainer.style.left = '0';
     printContainer.style.width = '800px'; 
-    printContainer.style.opacity = '0.001'; 
-    printContainer.style.pointerEvents = 'none';
-    printContainer.style.zIndex = '-1';
-    
+    printContainer.style.zIndex = '-9999';
     printContainer.style.padding = '40px';
     printContainer.style.background = '#ffffff'; 
     printContainer.style.color = '#000000'; 
@@ -1178,36 +1180,87 @@ async function downloadPDF() {
 
     document.body.appendChild(printContainer);
 
-    // Wait 150ms to ensure the browser has fully painted all KaTeX math
-    await new Promise(resolve => setTimeout(resolve, 150));
-
     const opt = {
       margin:       [15, 15, 15, 15],
       filename:     `ANISH_Draft_${currentSub}_${Date.now()}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     await html2pdf().set(opt).from(printContainer).save();
-    document.body.removeChild(printContainer);
     
   } catch (err) {
     console.error(err);
     alert('Failed to generate PDF. Please check the console.');
+  } finally {
+    // FIX: cleanup runs even if html2pdf().save() throws, preventing DOM leak
+    if (printContainer && printContainer.parentNode) {
+      printContainer.parentNode.removeChild(printContainer);
+    }
+    btn.innerHTML = originalText;
+    btn.disabled = false;
   }
-
-  btn.innerHTML = originalText;
-  btn.disabled = false;
 }
 
 function downloadLaTeX() {
-  const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
-  
-  let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
-  
-  // Escape stray % signs so they don't comment out the rest of the LaTeX file
-  cleanSolution = cleanSolution.replace(/([^\\])%/g, '$1\\%');
+  // FIX: proper markdown -> LaTeX conversion that
+  //   (1) preserves $...$, $$...$$, \(...\), \[...\] math regions verbatim
+  //   (2) closes \textbf{...} / \textit{...} braces correctly
+  //   (3) escapes LaTeX special chars (\ { } $ & % # _ ^ ~) outside math
+  function markdownToLatex(input) {
+    if (!input) return '';
+    let s = String(input);
+
+    // Step 1: pull math regions out so they pass through untouched.
+    // Order: display first ($$, \[ \]), then inline ($, \( \)).
+    const mathBlocks = [];
+    const stash = (m) => {
+      const i = mathBlocks.push(m) - 1;
+      return '@@MATH' + i + '@@';
+    };
+    s = s.replace(/\$\$([\s\S]+?)\$\$/g, (m) => stash(m));
+    s = s.replace(/\\\[([\s\S]+?)\\\]/g, (m) => stash(m));
+    s = s.replace(/\\\(([\s\S]+?)\\\)/g, (m) => stash(m));
+    s = s.replace(/\$([^\$\n]+?)\$/g, (m) => stash(m));
+
+    // Step 2: convert markdown emphasis to safe placeholders
+    // (placeholders contain only @ and letters/digits — none are LaTeX special chars).
+    s = s.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '@@BISTART@@$1@@BIEND@@');
+    s = s.replace(/\*\*([\s\S]+?)\*\*/g,    '@@BSTART@@$1@@BEND@@');
+    s = s.replace(/\*([^\s\*][^\n\*]*?)\*/g, '@@ISTART@@$1@@IEND@@');
+
+    // Step 3: escape LaTeX special chars in the remaining plain text.
+    // Backslash first (via temp marker so we don't double-escape what we add below).
+    s = s.replace(/\\/g, '@@BSLASH@@');
+    s = s.replace(/\{/g, '\\{');
+    s = s.replace(/\}/g, '\\}');
+    s = s.replace(/\$/g, '\\$');
+    s = s.replace(/&/g,  '\\&');
+    s = s.replace(/%/g,  '\\%');
+    s = s.replace(/#/g,  '\\#');
+    s = s.replace(/_/g,  '\\_');
+    s = s.replace(/\^/g, '\\textasciicircum{}');
+    s = s.replace(/~/g,  '\\textasciitilde{}');
+    s = s.replace(/@@BSLASH@@/g, '\\textbackslash{}');
+
+    // Step 4: restore emphasis placeholders as real LaTeX commands.
+    s = s.replace(/@@BISTART@@/g, '\\textbf{\\textit{');
+    s = s.replace(/@@BIEND@@/g,   '}}');
+    s = s.replace(/@@BSTART@@/g,  '\\textbf{');
+    s = s.replace(/@@BEND@@/g,    '}');
+    s = s.replace(/@@ISTART@@/g,  '\\textit{');
+    s = s.replace(/@@IEND@@/g,    '}');
+
+    // Step 5: restore math regions verbatim (already valid LaTeX).
+    s = s.replace(/@@MATH(\d+)@@/g, (_, idx) => mathBlocks[parseInt(idx, 10)] || '');
+
+    return s;
+  }
+
+  const rawQ = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
+  const qTextLatex     = markdownToLatex(rawQ);
+  const cleanSolution  = markdownToLatex(lastRawSolution);
 
   const latexContent = `\\documentclass[12pt]{article}
 \\usepackage{amsmath}
@@ -1218,7 +1271,7 @@ function downloadLaTeX() {
 \\begin{document}
 
 \\section*{Question (${currentSub})}
-${qText}
+${qTextLatex}
 
 \\vspace{1em}
 \\hrule
@@ -1229,10 +1282,11 @@ ${cleanSolution}
 
 \\end{document}`;
 
-  // Bypass Blob encoding corruption by using a direct octet-stream URI
-  const uri = 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(latexContent);
+  // FIX: Forced MIME type to pure text/plain to ensure online compilers (like Overleaf) accept it
+  const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
+  
   const link = document.createElement('a');
-  link.href = uri;
+  link.href = URL.createObjectURL(blob);
   link.download = `ANISH_Source_${currentSub}_${Date.now()}.tex`;
   document.body.appendChild(link);
   link.click();
