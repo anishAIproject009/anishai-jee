@@ -1109,16 +1109,11 @@ async function downloadPDF() {
   btn.innerHTML = '⏳ Generating PDF...';
   btn.disabled = true;
 
-  let printContainer = null;
+  let wrapper = null;
 
   try {
-    printContainer = document.createElement('div');
-    // FIX: Using z-index instead of left:-9999px prevents html2canvas from capturing a blank image
-    printContainer.style.position = 'fixed';
-    printContainer.style.top = '0';
-    printContainer.style.left = '0';
+    const printContainer = document.createElement('div');
     printContainer.style.width = '800px'; 
-    printContainer.style.zIndex = '-9999';
     printContainer.style.padding = '40px';
     printContainer.style.background = '#ffffff'; 
     printContainer.style.color = '#000000'; 
@@ -1153,7 +1148,6 @@ async function downloadPDF() {
     printContainer.appendChild(solTitle);
     
     const resultClone = document.getElementById('result-body').cloneNode(true);
-    
     resultClone.style.fontSize = '14px';
     resultClone.style.color = '#000000';
     
@@ -1178,7 +1172,17 @@ async function downloadPDF() {
       printContainer.appendChild(diagClone);
     }
 
-    document.body.appendChild(printContainer);
+    // THE REAL FIX: Put the print container inside a 0-height wrapper.
+    // This keeps it attached to the DOM so KaTeX can calculate math sizes, 
+    // but physically hides it from your screen without using z-index or opacity hacks.
+    wrapper = document.createElement('div');
+    wrapper.style.height = '0px';
+    wrapper.style.overflow = 'hidden';
+    wrapper.appendChild(printContainer);
+    document.body.appendChild(wrapper);
+
+    // Wait 150ms for KaTeX to finish computing dimensions in the DOM
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     const opt = {
       margin:       [15, 15, 15, 15],
@@ -1194,73 +1198,20 @@ async function downloadPDF() {
     console.error(err);
     alert('Failed to generate PDF. Please check the console.');
   } finally {
-    // FIX: cleanup runs even if html2pdf().save() throws, preventing DOM leak
-    if (printContainer && printContainer.parentNode) {
-      printContainer.parentNode.removeChild(printContainer);
-    }
+    // Clean up the DOM to prevent memory leaks
+    if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
     btn.innerHTML = originalText;
     btn.disabled = false;
   }
 }
 
 function downloadLaTeX() {
-  // FIX: proper markdown -> LaTeX conversion that
-  //   (1) preserves $...$, $$...$$, \(...\), \[...\] math regions verbatim
-  //   (2) closes \textbf{...} / \textit{...} braces correctly
-  //   (3) escapes LaTeX special chars (\ { } $ & % # _ ^ ~) outside math
-  function markdownToLatex(input) {
-    if (!input) return '';
-    let s = String(input);
-
-    // Step 1: pull math regions out so they pass through untouched.
-    // Order: display first ($$, \[ \]), then inline ($, \( \)).
-    const mathBlocks = [];
-    const stash = (m) => {
-      const i = mathBlocks.push(m) - 1;
-      return '@@MATH' + i + '@@';
-    };
-    s = s.replace(/\$\$([\s\S]+?)\$\$/g, (m) => stash(m));
-    s = s.replace(/\\\[([\s\S]+?)\\\]/g, (m) => stash(m));
-    s = s.replace(/\\\(([\s\S]+?)\\\)/g, (m) => stash(m));
-    s = s.replace(/\$([^\$\n]+?)\$/g, (m) => stash(m));
-
-    // Step 2: convert markdown emphasis to safe placeholders
-    // (placeholders contain only @ and letters/digits — none are LaTeX special chars).
-    s = s.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '@@BISTART@@$1@@BIEND@@');
-    s = s.replace(/\*\*([\s\S]+?)\*\*/g,    '@@BSTART@@$1@@BEND@@');
-    s = s.replace(/\*([^\s\*][^\n\*]*?)\*/g, '@@ISTART@@$1@@IEND@@');
-
-    // Step 3: escape LaTeX special chars in the remaining plain text.
-    // Backslash first (via temp marker so we don't double-escape what we add below).
-    s = s.replace(/\\/g, '@@BSLASH@@');
-    s = s.replace(/\{/g, '\\{');
-    s = s.replace(/\}/g, '\\}');
-    s = s.replace(/\$/g, '\\$');
-    s = s.replace(/&/g,  '\\&');
-    s = s.replace(/%/g,  '\\%');
-    s = s.replace(/#/g,  '\\#');
-    s = s.replace(/_/g,  '\\_');
-    s = s.replace(/\^/g, '\\textasciicircum{}');
-    s = s.replace(/~/g,  '\\textasciitilde{}');
-    s = s.replace(/@@BSLASH@@/g, '\\textbackslash{}');
-
-    // Step 4: restore emphasis placeholders as real LaTeX commands.
-    s = s.replace(/@@BISTART@@/g, '\\textbf{\\textit{');
-    s = s.replace(/@@BIEND@@/g,   '}}');
-    s = s.replace(/@@BSTART@@/g,  '\\textbf{');
-    s = s.replace(/@@BEND@@/g,    '}');
-    s = s.replace(/@@ISTART@@/g,  '\\textit{');
-    s = s.replace(/@@IEND@@/g,    '}');
-
-    // Step 5: restore math regions verbatim (already valid LaTeX).
-    s = s.replace(/@@MATH(\d+)@@/g, (_, idx) => mathBlocks[parseInt(idx, 10)] || '');
-
-    return s;
-  }
-
-  const rawQ = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
-  const qTextLatex     = markdownToLatex(rawQ);
-  const cleanSolution  = markdownToLatex(lastRawSolution);
+  const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
+  
+  let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
+  
+  // THE REAL FIX 1: Escape stray % signs so they don't corrupt the document
+  cleanSolution = cleanSolution.replace(/([^\\])%/g, '$1\\%');
 
   const latexContent = `\\documentclass[12pt]{article}
 \\usepackage{amsmath}
@@ -1271,7 +1222,7 @@ function downloadLaTeX() {
 \\begin{document}
 
 \\section*{Question (${currentSub})}
-${qTextLatex}
+${qText}
 
 \\vspace{1em}
 \\hrule
@@ -1282,8 +1233,8 @@ ${cleanSolution}
 
 \\end{document}`;
 
-  // FIX: Forced MIME type to pure text/plain to ensure online compilers (like Overleaf) accept it
-  const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
+  // THE REAL FIX 2: Inject a BOM (\uFEFF) so Overleaf recognizes it as valid UTF-8
+  const blob = new Blob(['\uFEFF' + latexContent], { type: 'text/plain;charset=utf-8' });
   
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
