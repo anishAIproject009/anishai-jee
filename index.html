@@ -1113,11 +1113,14 @@ async function downloadPDF() {
 
   try {
     const printContainer = document.createElement('div');
+    
+    // FIX 1: Enforce strict boundaries.
     printContainer.style.width = '800px'; 
-    printContainer.style.padding = '40px';
+    printContainer.style.padding = '30px';
     printContainer.style.background = '#ffffff'; 
     printContainer.style.color = '#000000'; 
     printContainer.style.fontFamily = "'Lora', serif";
+    printContainer.style.boxSizing = 'border-box';
 
     const header = document.createElement('div');
     header.innerHTML = `
@@ -1136,7 +1139,7 @@ async function downloadPDF() {
       const qDiv = document.createElement('div');
       qDiv.innerHTML = `
         <h3 style="font-family:'Syne', sans-serif; color:#444; margin-bottom:8px; font-size: 16px;">Source Question:</h3>
-        <p style="font-size:14px; line-height:1.6; margin-bottom: 24px; padding: 12px; background: #f9f9f9; border-left: 3px solid #ccc;">
+        <p style="font-size:14px; line-height:1.6; margin-bottom: 24px; padding: 12px; background: #f9f9f9; border-left: 3px solid #ccc; word-wrap: break-word;">
           ${esc(qText)}
         </p>
       `;
@@ -1151,12 +1154,14 @@ async function downloadPDF() {
     resultClone.style.fontSize = '14px';
     resultClone.style.color = '#000000';
     
-    const mathLines = resultClone.querySelectorAll('.math-line, h3, h2');
-    mathLines.forEach(el => {
-      el.style.pageBreakInside = 'avoid';
+    // FIX 2: Force long math equations to wrap instead of pushing the container off the page.
+    const mathElements = resultClone.querySelectorAll('.math-line, h3, h2, p');
+    mathElements.forEach(el => {
       if (el.classList.contains('math-line')) {
          el.style.background = '#f5f5f5'; 
          el.style.borderLeft = '2.5px solid #ff6a00';
+         el.style.whiteSpace = 'pre-wrap'; 
+         el.style.wordBreak = 'break-word'; 
       }
     });
     
@@ -1168,28 +1173,28 @@ async function downloadPDF() {
       diagClone.style.boxShadow = 'none';
       diagClone.style.border = '1px solid #ddd';
       diagClone.style.marginTop = '24px';
-      diagClone.style.pageBreakInside = 'avoid';
       printContainer.appendChild(diagClone);
     }
 
-    // THE REAL FIX: Put the print container inside a 0-height wrapper.
-    // This keeps it attached to the DOM so KaTeX can calculate math sizes, 
-    // but physically hides it from your screen without using z-index or opacity hacks.
+    // FIX 3: Push it off-screen without hiding overflow, so html2canvas renders it fully.
     wrapper = document.createElement('div');
-    wrapper.style.height = '0px';
-    wrapper.style.overflow = 'hidden';
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '-9999px';
+    wrapper.style.top = '0';
     wrapper.appendChild(printContainer);
     document.body.appendChild(wrapper);
 
-    // Wait 150ms for KaTeX to finish computing dimensions in the DOM
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Wait 200ms to guarantee KaTeX paints the DOM before we snap the picture
+    await new Promise(resolve => setTimeout(resolve, 200));
 
+    // FIX 4: Implement native html2pdf pagebreak logic to prevent slicing equations in half
     const opt = {
-      margin:       [15, 15, 15, 15],
+      margin:       [15, 10, 15, 10], 
       filename:     `ANISH_Draft_${currentSub}_${Date.now()}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      image:        { type: 'jpeg', quality: 1 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['css', 'legacy'], avoid: ['h3', 'h2', '.math-line'] }
     };
 
     await html2pdf().set(opt).from(printContainer).save();
@@ -1198,7 +1203,7 @@ async function downloadPDF() {
     console.error(err);
     alert('Failed to generate PDF. Please check the console.');
   } finally {
-    // Clean up the DOM to prevent memory leaks
+    // Destroy the hidden wrapper so it doesn't lag the user's browser
     if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
     btn.innerHTML = originalText;
     btn.disabled = false;
@@ -1210,7 +1215,7 @@ function downloadLaTeX() {
   
   let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
   
-  // THE REAL FIX 1: Escape stray % signs so they don't corrupt the document
+  // Clean stray % signs so they don't break LaTeX compilers
   cleanSolution = cleanSolution.replace(/([^\\])%/g, '$1\\%');
 
   const latexContent = `\\documentclass[12pt]{article}
@@ -1233,8 +1238,8 @@ ${cleanSolution}
 
 \\end{document}`;
 
-  // THE REAL FIX 2: Inject a BOM (\uFEFF) so Overleaf recognizes it as valid UTF-8
-  const blob = new Blob(['\uFEFF' + latexContent], { type: 'text/plain;charset=utf-8' });
+  // FIX: Pure text/plain Blob. No BOM. No forced encoding metadata.
+  const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
   
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
