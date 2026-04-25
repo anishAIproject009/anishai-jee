@@ -75,13 +75,10 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
     position: absolute;
     transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-/* Default is Dark, so Sun is visible by default */
 #dm-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0); }
 #dm-toggle .icon-sun { opacity: 1; transform: rotate(0deg) scale(1); }
-
 body.light-mode #dm-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0); }
 body.light-mode #dm-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
-
 
 /* ── SPLASH SCREEN ── */
 #splash{position:fixed;inset:0;z-index:9999;background:#0a0800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
@@ -89,8 +86,6 @@ body.light-mode #dm-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scal
 #splash .sp-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,106,0,0.08) 0%,transparent 70%);pointer-events:none;}
 @keyframes splashFade{0%{opacity:1;}100%{opacity:0;pointer-events:none;}}
 .splash-hide{animation:splashFade 0.8s ease forwards;}
-
-/* Compass spin for splash */
 @keyframes fullSpin{from{transform:rotateY(0deg) rotateX(6deg);}to{transform:rotateY(360deg) rotateX(6deg);}}
 @keyframes sheen-s{0%,40%,100%{opacity:0}48%{opacity:0.8}52%{opacity:0.8}60%{opacity:0}}
 @keyframes cshadow{0%,50%,100%{transform:scaleX(0.5);opacity:0.3}25%,75%{transform:scaleX(1);opacity:0.7}}
@@ -98,8 +93,6 @@ body.light-mode #dm-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scal
 .ci{width:72px;height:72px;transform-style:preserve-3d;animation:fullSpin 3s linear infinite;}
 .csh{width:52px;height:6px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3s linear infinite;}
 .sr{animation:sheen-s 3s linear infinite;}
-
-/* Splash text animations */
 @keyframes nameIn{0%,30%{opacity:0;transform:translateY(10px);}55%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
 @keyframes aiIn{0%,45%{opacity:0;}65%{opacity:1;}100%{opacity:1;}}
 @keyframes solverIn{0%,55%{opacity:0;transform:translateY(6px);}75%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
@@ -497,7 +490,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 </div>
 
 <div id="watermark"></div>
-  <div id="app-page" class="page">
+<div id="app-page" class="page">
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('solver')">⚗️ SOLVER</button>
     <button class="nav-tab" onclick="switchTab('theory')">📚 THEORY <span style="font-size:0.56rem;color:var(--cor);margin-left:3px">FREE</span></button>
@@ -561,6 +554,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
         <button class="act-btn act-similar" id="similar-btn" onclick="getSimilar()">🔁 Similar Questions</button>
         <button class="act-btn act-theory"  onclick="askTheoryFromSolve()">📚 Explain Theory</button>
         <button class="act-btn act-diagram" id="diagram-btn" onclick="fetchDiagram()">📐 Show Diagram</button>
+        
         <button class="act-btn act-pdf" id="pdf-btn" onclick="downloadPDF()" style="background:rgba(32,160,96,0.1); color:var(--cor); border-color:var(--cor);">📄 Download PDF</button>
         <button class="act-btn act-latex" onclick="downloadLaTeX()" style="background:rgba(192,128,240,0.1); color:var(--verify); border-color:var(--verify);">📝 Download LaTeX</button>
       </div>
@@ -649,7 +643,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 // ==========================================
 // ⚠️ MANDATORY: INSERT YOUR SUPABASE KEYS ⚠️
 // ==========================================
-const SUPABASE_URL = 'https://druwtgfbjebcwgbhgjci.supabase.co'; // ⚠️ Must be a valid URL
+const SUPABASE_URL = 'https://druwtgfbjebcwgbhgjci.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRydXd0Z2ZiamViY3dnYmhnamNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDkzMDAsImV4cCI6MjA5MjE4NTMwMH0.1pmrXsJkUgd4DJFszABP114f6aZba25b1T1anfyjgwI';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -694,7 +688,6 @@ window.onload = async () => {
     setTimeout(() => { sp.style.display = 'none'; }, 800);
     
     try {
-      // Check Supabase for an active session natively
       const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
       session = currentSession;
 
@@ -729,14 +722,11 @@ async function sendOTP() {
   let phone = document.getElementById('phone-input').value.trim();
   if(!/^[6-9]\d{9}$/.test(phone)) { setMsg('Valid 10-digit number please.','var(--err)'); return; }
   
-  // Format for Supabase (E.164)
   phone = '+91' + phone; 
   setMsg('Sending OTP…');
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithOtp({
-      phone: phone,
-    });
+    const { data, error } = await supabaseClient.auth.signInWithOtp({ phone: phone });
 
     if (error) {
       setMsg(error.message, 'var(--err)');
@@ -751,7 +741,6 @@ async function sendOTP() {
     } else {
       setMsg('An error occurred.', 'var(--err)');
     }
-    console.error(err);
   }
 }
 
@@ -764,11 +753,7 @@ async function verifyOTP() {
   setMsg('Verifying…');
 
   try {
-    const { data, error } = await supabaseClient.auth.verifyOtp({
-      phone: phone,
-      token: otp,
-      type: 'sms'
-    });
+    const { data, error } = await supabaseClient.auth.verifyOtp({ phone: phone, token: otp, type: 'sms' });
 
     if (error) {
       setMsg(error.message, 'var(--err)');
@@ -784,7 +769,6 @@ async function verifyOTP() {
     } else {
       setMsg('An error occurred.', 'var(--err)');
     }
-    console.error(err);
   }
 }
 
@@ -821,7 +805,6 @@ async function refreshStatus() {
     }
   } catch (e) {
     console.error("Status check failed:", e);
-    // Let apiFetch handle the logout if it's a 401
   }
 }
 
@@ -871,7 +854,6 @@ async function solve(){
 
 // ── SHOW RESULT ──
 function showResult(text,mode,subject){
-  // Capture the raw text for LaTeX export
   lastRawSolution = text;
 
   const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
@@ -879,7 +861,6 @@ function showResult(text,mode,subject){
   const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)'}[mode];
   document.getElementById('result-head').innerHTML=`<span class="tag" style="color:${sc}">${subject.toUpperCase()}</span><span class="tag" style="color:${mc}">${ml}</span>`;
 
-  // Verdict + motivational note for verify mode
   if(mode==='verify'){
     const lc=text.toLowerCase();
     let vcls,icon,vlabel,mcls,note;
@@ -903,7 +884,6 @@ function showResult(text,mode,subject){
   document.getElementById('reveal-btn').style.display=mode==='hint'?'inline-block':'none';
   if(sessionId){document.getElementById('followup-section').style.display='block';updateFU();}
 
-  // Render KaTeX
   setTimeout(()=>{
     if(window.renderMathInElement){
       renderMathInElement(document.getElementById('result-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});
@@ -1098,7 +1078,6 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
   
   if (auth && session) {
-    // Inject the Native Supabase JWT
     headers['Authorization'] = 'Bearer ' + session.access_token;
   }
   
@@ -1131,15 +1110,18 @@ async function downloadPDF() {
   btn.disabled = true;
 
   try {
-    // 1. Create the invisible A4 print container
     const printContainer = document.createElement('div');
-    printContainer.style.padding = '40px';
-    printContainer.style.background = '#ffffff'; // Force pure white background
-    printContainer.style.color = '#000000'; // Force black text for printing
-    printContainer.style.fontFamily = "'Lora', serif";
+    // FIX: Using z-index instead of left:-9999px prevents html2canvas from capturing a blank image
+    printContainer.style.position = 'fixed';
+    printContainer.style.top = '0';
+    printContainer.style.left = '0';
     printContainer.style.width = '800px'; 
+    printContainer.style.zIndex = '-9999';
+    printContainer.style.padding = '40px';
+    printContainer.style.background = '#ffffff'; 
+    printContainer.style.color = '#000000'; 
+    printContainer.style.fontFamily = "'Lora', serif";
 
-    // 2. Build the Document Header
     const header = document.createElement('div');
     header.innerHTML = `
       <h2 style="font-family:'Syne', sans-serif; color:#ff6a00; margin-bottom: 5px; font-weight:800; font-size: 24px; text-transform: uppercase;">
@@ -1152,7 +1134,6 @@ async function downloadPDF() {
     `;
     printContainer.appendChild(header);
 
-    // 3. Grab the Original Question
     const qText = document.getElementById('q-text').value.trim();
     if (qText) {
       const qDiv = document.createElement('div');
@@ -1165,30 +1146,26 @@ async function downloadPDF() {
       printContainer.appendChild(qDiv);
     }
 
-    // 4. Clone the Result Body (This preserves all KaTeX math!)
     const solTitle = document.createElement('div');
     solTitle.innerHTML = `<h3 style="font-family:'Syne', sans-serif; color:#444; margin-bottom:12px; font-size: 16px;">AI Solution Draft:</h3>`;
     printContainer.appendChild(solTitle);
     
     const resultClone = document.getElementById('result-body').cloneNode(true);
     
-    // Clean up the clone's styling for print
     resultClone.style.fontSize = '14px';
     resultClone.style.color = '#000000';
     
-    // Force page breaks to avoid cutting math equations in half
     const mathLines = resultClone.querySelectorAll('.math-line, h3, h2');
     mathLines.forEach(el => {
       el.style.pageBreakInside = 'avoid';
       if (el.classList.contains('math-line')) {
-         el.style.background = '#f5f5f5'; // Lighter gray for printing
+         el.style.background = '#f5f5f5'; 
          el.style.borderLeft = '2.5px solid #ff6a00';
       }
     });
     
     printContainer.appendChild(resultClone);
 
-    // 5. Clone Diagram if it exists
     const diagramWrap = document.getElementById('diagram-wrap');
     if (diagramWrap.style.display === 'block') {
       const diagClone = diagramWrap.cloneNode(true);
@@ -1199,23 +1176,17 @@ async function downloadPDF() {
       printContainer.appendChild(diagClone);
     }
 
-    // Attach to body invisibly so html2canvas can render it
-    printContainer.style.position = 'absolute';
-    printContainer.style.left = '-9999px';
     document.body.appendChild(printContainer);
 
-    // 6. Configure and trigger html2pdf
     const opt = {
       margin:       [15, 15, 15, 15],
       filename:     `ANISH_Draft_${currentSub}_${Date.now()}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     await html2pdf().set(opt).from(printContainer).save();
-
-    // 7. Clean up the invisible container
     document.body.removeChild(printContainer);
     
   } catch (err) {
@@ -1223,7 +1194,6 @@ async function downloadPDF() {
     alert('Failed to generate PDF. Please check the console.');
   }
 
-  // Restore button state
   btn.innerHTML = originalText;
   btn.disabled = false;
 }
@@ -1231,10 +1201,8 @@ async function downloadPDF() {
 function downloadLaTeX() {
   const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
   
-  // Clean up the raw markdown slightly for LaTeX compatibility
   let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
 
-  // 1. Build the LaTeX Document Structure
   const latexContent = `\\documentclass[12pt]{article}
 \\usepackage{amsmath}
 \\usepackage{amssymb}
@@ -1255,10 +1223,9 @@ ${cleanSolution}
 
 \\end{document}`;
 
-  // 2. Create a Blob (a raw data file)
+  // FIX: Forced MIME type to pure text/plain to ensure online compilers (like Overleaf) accept it
   const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
   
-  // 3. Create a temporary download link and click it
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = `ANISH_Source_${currentSub}_${Date.now()}.tex`;
