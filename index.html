@@ -46,7 +46,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 /* Footer */
 .asphyc-footer{text-align:center;padding:24px 0 16px;font-size:0.75rem;color:var(--muted);opacity:0.5;letter-spacing:0.5px;font-family:'Syne',sans-serif; margin-top: auto;}
 
-/* ── DARK/LIGHT MODE TOGGLE (WITH ANIMATIONS) ── */
+/* ── DARK/LIGHT MODE TOGGLE ── */
 #dm-toggle {
     position: fixed;
     bottom: 22px;
@@ -191,7 +191,7 @@ body.light-mode header{background:rgba(255,248,240,0.96);}
 .upload-zone input{display:none;}
 .up-sub{color:var(--muted);font-size:0.75rem;font-style:italic;}
 #preview-wrap{display:none;margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--brd2);position:relative;}
-#preview-wrap img{width:100%;max-height:300px;object-fit:contain;background:var(--card2);display:block;}
+#preview-img{width:100%;max-height:300px;object-fit:contain;background:var(--card2);display:block;}
 .rm-img{position:absolute;top:8px;right:8px;background:rgba(9,8,10,0.9);border:1px solid var(--brd2);color:var(--muted);border-radius:99px;padding:3px 10px;font-size:0.68rem;cursor:pointer;font-family:'Syne',sans-serif;transition:color 0.2s;}
 .rm-img:hover{color:var(--err);}
 .or-row{display:flex;align-items:center;gap:10px;margin:13px 0 9px;}
@@ -203,10 +203,11 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 
 /* Mode buttons */
 .mode-row{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap;}
-.mode-btn{flex:1;min-width:100px;padding:9px 6px;border-radius:9px;border:1px solid var(--brd);background:var(--card);color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.6;}
+.mode-btn{flex:1;min-width:70px;padding:9px 6px;border-radius:9px;border:1px solid var(--brd);background:var(--card);color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.6;}
 .mode-btn.mh{background:rgba(240,192,64,0.08);color:var(--hint);border-color:var(--hint);}
 .mode-btn.mf{background:rgba(255,106,0,0.1);color:var(--or1);border-color:var(--or1);box-shadow:0 0 8px rgba(255,106,0,0.1);}
 .mode-btn.mv{background:rgba(192,128,240,0.08);color:var(--verify);border-color:var(--verify);}
+.mode-btn.ma{background:rgba(96,208,128,0.08);color:var(--cor);border-color:var(--cor);box-shadow:0 0 8px rgba(96,208,128,0.1);}
 
 /* Verify box */
 #verify-box{display:none;margin-top:10px;background:var(--card);border:1px solid var(--verify);border-radius:10px;padding:13px 14px;}
@@ -342,7 +343,14 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 .kw-overlay{display:none;position:fixed;inset:0;z-index:999;background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);}
 .kw-overlay.show{display:block;}
 
-@media(max-width:600px){header{padding:12px 14px;}#app-page{padding:20px 12px 60px;}.sec-title{font-size:1.2rem;}.mode-btn{min-width:calc(50% - 6px);font-size:0.66rem;}#user-phone{display:none;}}
+@media(max-width:600px){
+  header{padding:12px 14px;}
+  #app-page{padding:20px 12px 60px;}
+  .sec-title{font-size:1.2rem;}
+  /* Responsive fix: makes the 4 buttons stack nicely 2x2 on mobile */
+  .mode-btn{min-width:calc(50% - 6px);font-size:0.66rem;}
+  #user-phone{display:none;}
+}
 
 /* Watermark */
 #watermark {
@@ -409,7 +417,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
         </svg>
       </div>
     </div>
-    ANISH<b>.AI</b> JEE
+    ANISH.AI</b> JEE
   </div>
   <div class="hdr-right">
     <div class="quota-pill" id="quota-display">Loading...</div>
@@ -441,7 +449,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
           <div style="width:42px;height:4px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3.5s linear infinite;"></div>
         </div>
         <div>
-          <div class="wc-appname">ANISH<b>.AI</b> JEE</div>
+          <div class="wc-appname">ANISH.AI</b> JEE</div>
           <div class="wc-tagline">PHYSICS · CHEMISTRY · MATHS</div>
         </div>
       </div>
@@ -469,7 +477,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
   <div class="login-card">
     <div class="login-gloss"></div>
     <div class="login-inner">
-      <div class="login-logo">ANISH<b>.AI</b> JEE</div>
+      <div class="login-logo">ANISH.AI</b> JEE</div>
       <div class="login-sub">Physics · Chemistry · Maths</div>
       <div id="phone-step">
         <label class="inp-label">MOBILE NUMBER</label>
@@ -509,21 +517,30 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
     <div class="upload-zone" id="drop-zone">
       <input type="file" id="img-input" accept="image/*" capture="environment" onchange="handleImg(event)" style="display:none">
       <input type="file" id="img-gallery" accept="image/*" onchange="handleImg(event)" style="display:none">
+      <input type="file" id="pdf-input" accept="application/pdf" onchange="handleImg(event)" style="display:none">
+      
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <button type="button" onclick="event.stopPropagation();document.getElementById('img-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.4);background:rgba(255,106,0,0.1);color:var(--or1);font-size:0.95rem;cursor:pointer">📷 Camera</button>
         <button type="button" onclick="event.stopPropagation();document.getElementById('img-gallery').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.2);background:rgba(255,106,0,0.05);color:var(--text);font-size:0.95rem;cursor:pointer">🖼️ Gallery</button>
+        <button type="button" onclick="event.stopPropagation();document.getElementById('pdf-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(96,208,128,0.4);background:rgba(96,208,128,0.1);color:var(--cor);font-size:0.95rem;cursor:pointer">📄 PDF</button>
       </div>
-      <div class="up-sub" style="margin-top:10px">or drag & drop · JPG · PNG · WEBP</div>
+      <div class="up-sub" style="margin-top:10px">or drag & drop · JPG · PNG · WEBP · PDF</div>
     </div>
-    <div id="preview-wrap"><img id="preview-img" src="" alt=""><button class="rm-img" onclick="removeImg()">✕ Remove</button></div>
+    
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="">
+      <div id="pdf-label" style="display:none; padding:30px 20px; text-align:center; color:var(--cor); font-family:'Syne',sans-serif; background:var(--card2); word-break:break-all; border-radius:8px;"></div>
+      <button class="rm-img" onclick="removeImg()">✕ Remove</button>
+    </div>
 
     <div class="or-row"><div class="or-line"></div><span>or type your question</span><div class="or-line"></div></div>
     <textarea class="q-text" id="q-text" placeholder="Type your question here, or add context to the image..."></textarea>
 
     <div class="mode-row">
       <button class="mode-btn mh" id="btn-hint"   onclick="setMode('hint')">💡 HINT<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">I'll try first</span></button>
-      <button class="mode-btn"    id="btn-full"   onclick="setMode('full')">📖 FULL SOLUTION<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Step-by-step</span></button>
+      <button class="mode-btn"    id="btn-full"   onclick="setMode('full')">📖 FULL SOL<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Step-by-step</span></button>
       <button class="mode-btn"    id="btn-verify" onclick="setMode('verify')">✅ VERIFY<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Check my work</span></button>
+      <button class="mode-btn ma" id="btn-answers" onclick="setMode('answers')">🎯 ANSWERS<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Only final</span></button>
     </div>
 
     <div id="verify-box"><label>YOUR ANSWER / WORKING</label><textarea id="student-ans" placeholder="Write your answer or working here..."></textarea></div>
@@ -817,31 +834,73 @@ function switchTab(tab){
 
 // ── SUBJECT / MODE ──
 function setSub(el,cls){document.querySelectorAll('.subj-btn').forEach(b=>b.className='subj-btn');el.classList.add('a'+cls);currentSub=el.dataset.sub;}
+
+// FIX: Updated setMode to include 'answers'
 function setMode(mode){
-  currentMode=mode;const map={hint:'mh',full:'mf',verify:'mv'};
-  ['hint','full','verify'].forEach(m=>{document.getElementById('btn-'+m).className='mode-btn'+(mode===m?' '+map[m]:'');});
+  currentMode=mode;const map={hint:'mh',full:'mf',verify:'mv',answers:'ma'};
+  ['hint','full','verify','answers'].forEach(m=>{document.getElementById('btn-'+m).className='mode-btn'+(mode===m?' '+map[m]:'');});
   document.getElementById('verify-box').style.display=mode==='verify'?'block':'none';
 }
 
-// ── IMAGE ──
+// ── IMAGE & PDF HANDLING ──
 function handleImg(e){if(e.target.files[0])loadImg(e.target.files[0]);}
-function loadImg(file){const r=new FileReader();r.onload=ev=>{imageBase64=ev.target.result.split(',')[1];imageType=file.type||'image/jpeg';document.getElementById('preview-img').src=ev.target.result;document.getElementById('preview-wrap').style.display='block';};r.readAsDataURL(file);}
-function removeImg(){imageBase64=null;imageType=null;document.getElementById('preview-wrap').style.display='none';document.getElementById('preview-img').src='';document.getElementById('img-input').value='';}
+
+function loadImg(file){
+  // SAFETY CHECK: Prevent Vercel 4.5MB Payload Crash
+  if (file.size > 3.5 * 1024 * 1024) {
+      alert('File is too large. Please upload a file smaller than 3.5MB.');
+      return;
+  }
+
+  const r = new FileReader();
+  r.onload = ev => {
+    imageBase64 = ev.target.result.split(',')[1];
+    imageType = file.type || 'image/jpeg';
+    
+    document.getElementById('preview-wrap').style.display = 'block';
+    
+    if (imageType === 'application/pdf') {
+      // Show PDF icon instead of trying to render it as an image
+      document.getElementById('preview-img').style.display = 'none';
+      document.getElementById('pdf-label').style.display = 'block';
+      document.getElementById('pdf-label').innerHTML = `📄 <b>PDF Uploaded:</b><br><br>${file.name}<br><span style="font-size:0.7rem;color:var(--muted)">Gemini will read all pages and extract the questions.</span>`;
+    } else {
+      // Show normal image preview
+      document.getElementById('preview-img').style.display = 'block';
+      document.getElementById('pdf-label').style.display = 'none';
+      document.getElementById('preview-img').src = ev.target.result;
+    }
+  };
+  r.readAsDataURL(file);
+}
+
+function removeImg(){
+  imageBase64 = null; 
+  imageType = null;
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('preview-img').src = '';
+  document.getElementById('img-input').value = '';
+  document.getElementById('pdf-input').value = '';
+}
+
 const dz=document.getElementById('drop-zone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);});
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&(f.type.startsWith('image/')||f.type==='application/pdf'))loadImg(f);});
 
 // ── SOLVE ──
 async function solve(){
   const extraText=document.getElementById('q-text').value.trim();
   const studentAnswer=document.getElementById('student-ans').value.trim();
-  if(!imageBase64&&!extraText){alert('Please upload an image or type your question.');return;}
+  if(!imageBase64&&!extraText){alert('Please upload an image/PDF or type your question.');return;}
   if(currentMode==='verify'&&!studentAnswer){alert('Please enter your answer to verify.');return;}
+  
   ['result-card','post-actions','similar-card','followup-section','sub-banner'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('verdict-wrap').innerHTML='';document.getElementById('motive-wrap').innerHTML='';
   document.getElementById('loader').style.display='block';document.getElementById('solve-btn').disabled=true;
+  
   savedQ={subject:currentSub,extraText,imageBase64,imageType};
+  
   try{
     const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:currentMode,imageBase64,imageType,extraText,studentAnswer,sessionId:null});
     sessionId=r.sessionId;followupCount=0;showResult(r.answer,currentMode,currentSub);await refreshStatus();
@@ -857,8 +916,10 @@ function showResult(text,mode,subject){
   lastRawSolution = text;
 
   const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
-  const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY'}[mode];
-  const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)'}[mode];
+  
+  // FIX: Added 'ANSWERS ONLY' header mapping
+  const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY',answers:'ANSWERS ONLY'}[mode];
+  const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)',answers:'var(--cor)'}[mode];
   document.getElementById('result-head').innerHTML=`<span class="tag" style="color:${sc}">${subject.toUpperCase()}</span><span class="tag" style="color:${mc}">${ml}</span>`;
 
   if(mode==='verify'){
@@ -932,7 +993,8 @@ function formatText(raw){
     }
 
     if (/^[\*\-]\s+(.+)/.test(t)) {
-      html += `<div style="margin-left: 18px; display: list-item; list-style-type: disc; color: var(--text);">${esc(t.replace(/^[\*\-]\s+/, ''))}</div>`;
+      // PREVIOUS FIX: color: inherit; applied here
+      html += `<div style="margin-left: 18px; display: list-item; list-style-type: disc; color: inherit;">${esc(t.replace(/^[\*\-]\s+/, ''))}</div>`;
       continue;
     }
 
@@ -1114,9 +1176,8 @@ async function downloadPDF() {
   try {
     const printContainer = document.createElement('div');
     
-    // FIX 1: Enforce strict boundaries.
-    printContainer.style.width = '750px'; 
-    printContainer.style.padding = '10px';
+    printContainer.style.width = '700px'; 
+    printContainer.style.padding = '30px';
     printContainer.style.background = '#ffffff'; 
     printContainer.style.color = '#000000'; 
     printContainer.style.fontFamily = "'Lora', serif";
@@ -1125,7 +1186,7 @@ async function downloadPDF() {
     const header = document.createElement('div');
     header.innerHTML = `
       <h2 style="font-family:'Syne', sans-serif; color:#ff6a00; margin-bottom: 5px; font-weight:800; font-size: 24px; text-transform: uppercase;">
-        ANISH.AI INTERNAL REVIEW
+        ANISH.AI
       </h2>
       <div style="font-family:'JetBrains Mono', monospace; font-size: 12px; color: #666; margin-bottom: 10px;">
         Generated: ${new Date().toLocaleString()} | Subject: ${currentSub.toUpperCase()}
@@ -1154,7 +1215,6 @@ async function downloadPDF() {
     resultClone.style.fontSize = '14px';
     resultClone.style.color = '#000000';
     
-    // FIX 2: Force long math equations to wrap instead of pushing the container off the page.
     const mathElements = resultClone.querySelectorAll('.math-line, h3, h2, p');
     mathElements.forEach(el => {
       if (el.classList.contains('math-line')) {
@@ -1176,7 +1236,6 @@ async function downloadPDF() {
       printContainer.appendChild(diagClone);
     }
 
-    // FIX 3: Push it off-screen without hiding overflow, so html2canvas renders it fully.
     wrapper = document.createElement('div');
     wrapper.style.position = 'absolute';
     wrapper.style.left = '-9999px';
@@ -1184,12 +1243,10 @@ async function downloadPDF() {
     wrapper.appendChild(printContainer);
     document.body.appendChild(wrapper);
 
-    // Wait 200ms to guarantee KaTeX paints the DOM before we snap the picture
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // FIX 4: Implement native html2pdf pagebreak logic to prevent slicing equations in half
     const opt = {
-      margin:       [15, 10, 15, 10], 
+      margin:       [10, 10, 10, 10], 
       filename:     `ANISH_Draft_${currentSub}_${Date.now()}.pdf`,
       image:        { type: 'jpeg', quality: 1 },
       html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
@@ -1203,7 +1260,6 @@ async function downloadPDF() {
     console.error(err);
     alert('Failed to generate PDF. Please check the console.');
   } finally {
-    // Destroy the hidden wrapper so it doesn't lag the user's browser
     if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
     btn.innerHTML = originalText;
     btn.disabled = false;
@@ -1214,8 +1270,6 @@ function downloadLaTeX() {
   const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
   
   let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
-  
-  // Clean stray % signs so they don't break LaTeX compilers
   cleanSolution = cleanSolution.replace(/([^\\])%/g, '$1\\%');
 
   const latexContent = `\\documentclass[12pt]{article}
@@ -1238,7 +1292,6 @@ ${cleanSolution}
 
 \\end{document}`;
 
-  // FIX: Pure text/plain Blob. No BOM. No forced encoding metadata.
   const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
   
   const link = document.createElement('a');
