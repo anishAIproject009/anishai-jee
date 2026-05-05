@@ -1188,24 +1188,23 @@ async function downloadPDF() {
           <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
       <style>
-  /* 1. FORCE EXACT GRAPHICS TO SAVE KATEX LINES */
+  /* 1. FORCE EXACT GRAPHICS TO KEEP COLORS & BORDERS */
   html, body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   
-  /* 2. BASE TYPOGRAPHY (Protecting KaTeX) */
+  /* 2. BASE TYPOGRAPHY & SPACING */
   body { 
     font-family: 'Lora', serif; 
-    padding: 40px; 
+    padding: 50px; /* Increased outer page padding */
     color: #111; 
     background: #fff; 
-    line-height: 1.6; 
+    line-height: 1.8; /* Restored general breathing room */
   }
   
-  /* Reset line-height inside math elements so fractions don't overlap */
-  .katex { line-height: 1.2 !important; }
-  .katex-display { margin: 1em 0 !important; }
+  /* DO NOT FORCE line-height on .katex, let it calculate naturally to save square roots */
+  .katex-display { margin: 1.5em 0 !important; }
 
   h1, h2, h3 { 
     font-family: 'Syne', sans-serif; 
@@ -1213,62 +1212,67 @@ async function downloadPDF() {
     page-break-after: avoid; 
   }
   
-  /* Add breathing room above new problems */
-  h3 { margin-top: 32px; margin-bottom: 12px; font-size: 18px; }
+  /* 3. INCREASED GAPS FOR HEADERS */
+  h3 { 
+    margin-top: 40px !important; 
+    margin-bottom: 16px !important; 
+    font-size: 18px; 
+  }
 
-  /* 3. BRANDING HEADER */
+  /* 4. BRANDING HEADER */
   .header { 
     border-bottom: 2px solid #ff6a00; 
-    padding-bottom: 12px; 
-    margin-bottom: 30px; 
+    padding-bottom: 16px; 
+    margin-bottom: 40px; 
   }
   .header h2 { 
     color: #ff6a00; 
     font-weight: 800; 
     font-size: 26px; 
     text-transform: uppercase; 
-    margin: 0 0 5px 0; 
+    margin: 0 0 8px 0; 
     letter-spacing: 1px; 
   }
   .header .meta { 
     font-family: 'JetBrains Mono', monospace; 
-    font-size: 12px; 
+    font-size: 13px; 
     color: #666; 
   }
   
-  /* 4. CONTENT CONTAINERS */
+  /* 5. CONTENT CONTAINERS - MORE PADDING */
   .question-box { 
-    background: #fdfdfd; 
-    border-left: 4px solid #ccc; 
-    padding: 18px; 
-    margin-bottom: 30px; 
+    background: #fdfdfd !important; 
+    border-left: 4px solid #ccc !important; 
+    padding: 24px !important; /* Increased inner padding */
+    margin-bottom: 40px !important; /* Increased gap before solution */
     font-size: 15px; 
     page-break-inside: avoid; 
   }
   
-  /* Fix the math line overlap by forcing block display and proper padding */
+  /* Math Line spacing and overflow fix */
   .math-line { 
     display: block;
-    background: #fcfcfc; 
-    border: 1px solid #eee;
-    border-left: 3px solid #ff6a00; 
-    padding: 16px; 
-    margin: 16px 0; 
+    background: #fcfcfc !important; 
+    border: 1px solid #eee !important;
+    border-left: 3px solid #ff6a00 !important; 
+    padding: 20px 24px !important; /* Massive breathing room inside */
+    margin: 24px 0 !important; /* Spacing between math lines */
     font-family: 'JetBrains Mono', monospace; 
     white-space: pre-wrap; 
     font-size: 14px; 
     page-break-inside: avoid; 
-    border-radius: 4px;
+    border-radius: 6px;
+    overflow: visible !important; /* Crucial to prevent clipping top borders of roots */
   }
   
-  /* 5. DIAGRAM BOUNDARIES */
+  /* 6. DIAGRAM BOUNDARIES */
   .diagram-box { 
-    margin-top: 30px; 
-    border: 1px solid #eee; 
-    padding: 20px; 
+    margin-top: 40px !important; 
+    border: 1px solid #eee !important; 
+    padding: 30px !important; 
     text-align: center; 
     page-break-inside: avoid; 
-    background: #fff;
+    background: #fff !important;
   }
   svg { 
     max-width: 100% !important; 
@@ -1277,7 +1281,7 @@ async function downloadPDF() {
     height: auto !important; 
   }
   
-  /* 6. CLEANUP */
+  /* 7. CLEANUP */
   .kw { 
     border-bottom: none !important; 
     color: #ff6a00 !important; 
