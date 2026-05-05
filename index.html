@@ -9,7 +9,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --bg:#09080a;--card:#141200;--card2:#1c1900;
@@ -1168,99 +1167,89 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
 async function downloadPDF() {
   const btn = document.getElementById('pdf-btn');
   const originalText = btn.innerHTML;
-  btn.innerHTML = '⏳ Generating PDF...';
+  btn.innerHTML = '⏳ Preparing PDF...';
   btn.disabled = true;
 
-  let wrapper = null;
-
   try {
-    const printContainer = document.createElement('div');
-    
-    printContainer.style.width = '700px'; 
-    printContainer.style.padding = '30px';
-    printContainer.style.background = '#ffffff'; 
-    printContainer.style.color = '#000000'; 
-    printContainer.style.fontFamily = "'Lora', serif";
-    printContainer.style.boxSizing = 'border-box';
-
-    const header = document.createElement('div');
-    header.innerHTML = `
-      <h2 style="font-family:'Syne', sans-serif; color:#ff6a00; margin-bottom: 5px; font-weight:800; font-size: 24px; text-transform: uppercase;">
-        ANISH.AI
-      </h2>
-      <div style="font-family:'JetBrains Mono', monospace; font-size: 12px; color: #666; margin-bottom: 10px;">
-        Generated: ${new Date().toLocaleString()} | Subject: ${currentSub.toUpperCase()}
-      </div>
-      <hr style="border:0; border-bottom: 2px solid #ff6a00; margin-bottom: 24px;">
-    `;
-    printContainer.appendChild(header);
-
-    const qText = document.getElementById('q-text').value.trim();
-    if (qText) {
-      const qDiv = document.createElement('div');
-      qDiv.innerHTML = `
-        <h3 style="font-family:'Syne', sans-serif; color:#444; margin-bottom:8px; font-size: 16px;">Source Question:</h3>
-        <p style="font-size:14px; line-height:1.6; margin-bottom: 24px; padding: 12px; background: #f9f9f9; border-left: 3px solid #ccc; word-wrap: break-word;">
-          ${esc(qText)}
-        </p>
-      `;
-      printContainer.appendChild(qDiv);
-    }
-
-    const solTitle = document.createElement('div');
-    solTitle.innerHTML = `<h3 style="font-family:'Syne', sans-serif; color:#444; margin-bottom:12px; font-size: 16px;">AI Solution Draft:</h3>`;
-    printContainer.appendChild(solTitle);
-    
-    const resultClone = document.getElementById('result-body').cloneNode(true);
-    resultClone.style.fontSize = '14px';
-    resultClone.style.color = '#000000';
-    
-    const mathElements = resultClone.querySelectorAll('.math-line, h3, h2, p');
-    mathElements.forEach(el => {
-      if (el.classList.contains('math-line')) {
-         el.style.background = '#f5f5f5'; 
-         el.style.borderLeft = '2.5px solid #ff6a00';
-         el.style.whiteSpace = 'pre-wrap'; 
-         el.style.wordBreak = 'break-word'; 
-      }
-    });
-    
-    printContainer.appendChild(resultClone);
-
+    const qText = document.getElementById('q-text').value.trim() || 'Image based question';
+    const resultHTML = document.getElementById('result-body').innerHTML;
     const diagramWrap = document.getElementById('diagram-wrap');
-    if (diagramWrap.style.display === 'block') {
-      const diagClone = diagramWrap.cloneNode(true);
-      diagClone.style.boxShadow = 'none';
-      diagClone.style.border = '1px solid #ddd';
-      diagClone.style.marginTop = '24px';
-      printContainer.appendChild(diagClone);
+    
+    let diagramHTML = '';
+    if (diagramWrap && diagramWrap.style.display === 'block') {
+      diagramHTML = `<div class="diagram-box">${diagramWrap.innerHTML}</div>`;
     }
 
-    wrapper = document.createElement('div');
-    wrapper.style.position = 'absolute';
-    wrapper.style.left = '-9999px';
-    wrapper.style.top = '0';
-    wrapper.appendChild(printContainer);
-    document.body.appendChild(wrapper);
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>ANISH_Solution_${currentSub}_${Date.now()}</title>
+          <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+          <style>
+            body { font-family: 'Lora', serif; padding: 40px; color: #000; background: #fff; line-height: 1.8; }
+            h1, h2, h3 { font-family: 'Syne', sans-serif; color: #333; }
+            .header { border-bottom: 2px solid #ff6a00; padding-bottom: 12px; margin-bottom: 30px; }
+            .header h2 { color: #ff6a00; font-weight: 800; font-size: 26px; text-transform: uppercase; margin: 0 0 5px 0; letter-spacing: 1px; }
+            .header .meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; }
+            .question-box { background: #f9f9f9; border-left: 4px solid #ccc; padding: 18px; margin-bottom: 30px; font-size: 15px; }
+            .math-line { background: #f5f5f5; border-left: 3px solid #ff6a00; padding: 12px; margin: 12px 0; font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; font-size: 14px; }
+            .diagram-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; text-align: center; }
+            svg { max-width: 100%; height: auto; }
+            .kw { border-bottom: none !important; color: #ff6a00 !important; font-weight: bold; pointer-events: none; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>ANISH.AI</h2>
+            <div class="meta">Generated: ${new Date().toLocaleString()} | Subject: ${currentSub.toUpperCase()}</div>
+          </div>
+          
+          <h3 style="font-size: 18px; margin-bottom: 10px;">Source Question:</h3>
+          <div class="question-box">${esc(qText)}</div>
+          
+          <h3 style="font-size: 18px; margin-bottom: 15px;">AI Solution:</h3>
+          <div style="font-size: 15px;">
+            ${resultHTML}
+          </div>
+          
+          ${diagramHTML}
+          
+          <script>
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+              }, 800);
+            };
+          <\\/script>
+        </body>
+      </html>
+    `;
+    // Note: The script tag above is escaped as <\\/script> to pass the parser!
 
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    const opt = {
-      margin:       [10, 10, 10, 10], 
-      filename:     `ANISH_Draft_${currentSub}_${Date.now()}.pdf`,
-      image:        { type: 'jpeg', quality: 1 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['css', 'legacy'], avoid: ['h3', 'h2', '.math-line'] }
-    };
-
-    await html2pdf().set(opt).from(printContainer).save();
+    // 1. Create the invisible iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '-10000px';
+    iframe.style.bottom = '-10000px';
     
+    // 2. Use srcdoc instead of document.write to bypass local file CORS restrictions
+    iframe.srcdoc = printHTML.replace(/<\\\\\/script>/g, '<\\/script>');
+    document.body.appendChild(iframe);
+
+    // 3. Cleanup after a set time 
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }, 8000);
+
   } catch (err) {
     console.error(err);
-    alert('Failed to generate PDF. Please check the console.');
-  } finally {
-    if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+    alert('Failed to generate PDF. Check console.');
     btn.innerHTML = originalText;
     btn.disabled = false;
   }
