@@ -361,48 +361,20 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
   white-space:nowrap;padding:28px 14px;letter-spacing:1px;font-family:'Syne',sans-serif;
 }
 
-/* ── EXACT DIRECT PRINT STYLES (No Iframes) ── */
+/* ── PASTE THE PRINT STYLES HERE ── */
 @media print {
-  /* 1. Force Exact Graphics for KaTeX borders (Square Roots) */
-  html, body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    background: white !important;
-    color: black !important;
-  }
-
-  /* 2. Hide all UI elements, backgrounds, and watermarks */
+  body { background: white !important; color: black !important; display: block; }
   body::before, body::after, #watermark, header, #dm-toggle, .asphyc-footer { display: none !important; }
   .nav-tabs, .upload-zone, .or-row, textarea, .mode-row, #solve-btn, #verify-box, .post-actions, #followup-section, .similar-card, .sub-banner, .theory-search, .topic-chips { display: none !important; }
-
-  /* 3. Reset Page Layout */
   #app-page { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-
-  /* 4. Result Card Formatting */
   .result-card { border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; page-break-inside: avoid; }
   .result-head { background: transparent !important; padding: 0 0 10px 0 !important; border-bottom: 2px solid #ff6a00 !important; }
   .result-body { color: black !important; padding: 10px 0 !important; }
-
-  /* 5. Math Line Fixes (Spacing & Square Roots) */
-  .math-line { 
-    background: #fcfcfc !important; 
-    border: 1px solid #eee !important;
-    border-left: 3px solid #ff6a00 !important; 
-    color: black !important;
-    padding: 24px !important; 
-    margin: 24px 0 !important; 
-    page-break-inside: avoid; 
-    overflow: visible !important; /* Critical for top of square root */
-    line-height: 2.5 !important; /* Forces tall fractions apart */
-  }
-  
-  /* Allow KaTeX to calculate its own internal heights */
-  .katex-display { margin: 1.5em 0 !important; }
-
-  /* 6. Diagram Fixes */
-  #diagram-wrap { page-break-inside: avoid; border: 1px solid #ccc !important; padding: 20px !important; text-align: center !important;}
-  svg { max-width: 100% !important; max-height: 350px !important; width: auto !important; height: auto !important; object-fit: contain !important; }
+  .math-line { background: #f9f9f9 !important; border-left: 2px solid #ff6a00 !important; color: black !important; page-break-inside: avoid; }
+  #diagram-wrap { page-break-inside: avoid; border: 1px solid #ccc !important; }
+  svg { max-width: 100% !important; height: auto !important; }
 }
+/* ───────────────────────────────── */
 </style>
 </head>
 <body>
@@ -1207,33 +1179,16 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
 
 // ── PUBLISHING EXPORTS (PDF & LATEX) ──
 
-async function downloadPDF() {
-  const btn = document.getElementById('pdf-btn');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '⏳ Preparing PDF...';
-  btn.disabled = true;
-
-  try {
-    const originalTitle = document.title;
-    document.title = `ANISH_Solution_${currentSub}_${Date.now()}`;
-
-    // Ensure all custom fonts (KaTeX) are fully downloaded and rendered
-    await document.fonts.ready;
-
-    // Small timeout to guarantee DOM repaint before invoking the printer
-    setTimeout(() => {
-      window.print();
-      document.title = originalTitle;
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }, 400);
-
-  } catch (err) {
-    console.error(err);
-    alert('Failed to generate PDF. Please check the console.');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+function downloadPDF() {
+  // Briefly change the document title so the browser suggests a nice default PDF filename
+  const originalTitle = document.title;
+  document.title = `ANISH_Solution_${currentSub}_${Date.now()}`;
+  
+  // Trigger the browser's native PDF/Print engine
+  window.print();
+  
+  // Restore the original title
+  document.title = originalTitle;
 }
 
 function downloadLaTeX() {
