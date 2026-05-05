@@ -1188,15 +1188,25 @@ async function downloadPDF() {
           <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
           <style>
+            /* 1. FORCE EXACT GRAPHICS TO SAVE KATEX LINES */
+            html, body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             body { font-family: 'Lora', serif; padding: 40px; color: #000; background: #fff; line-height: 1.8; }
             h1, h2, h3 { font-family: 'Syne', sans-serif; color: #333; }
             .header { border-bottom: 2px solid #ff6a00; padding-bottom: 12px; margin-bottom: 30px; }
             .header h2 { color: #ff6a00; font-weight: 800; font-size: 26px; text-transform: uppercase; margin: 0 0 5px 0; letter-spacing: 1px; }
             .header .meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; }
-            .question-box { background: #f9f9f9; border-left: 4px solid #ccc; padding: 18px; margin-bottom: 30px; font-size: 15px; }
-            .math-line { background: #f5f5f5; border-left: 3px solid #ff6a00; padding: 12px; margin: 12px 0; font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; font-size: 14px; }
-            .diagram-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; text-align: center; }
-            svg { max-width: 100%; height: auto; }
+            .question-box { background: #f9f9f9; border-left: 4px solid #ccc; padding: 18px; margin-bottom: 30px; font-size: 15px; page-break-inside: avoid; }
+            
+            /* Add page-break-inside: avoid to keep math blocks together */
+            .math-line { background: #f5f5f5; border-left: 3px solid #ff6a00; padding: 12px; margin: 12px 0; font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; font-size: 14px; page-break-inside: avoid; }
+            
+            /* 2. FORCE STRICT BOUNDARIES ON DIAGRAMS */
+            .diagram-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; text-align: center; page-break-inside: avoid; max-width: 100%; overflow: hidden; }
+            svg { max-width: 100% !important; max-height: 350px !important; width: auto !important; height: auto !important; object-fit: contain; }
+            
             .kw { border-bottom: none !important; color: #ff6a00 !important; font-weight: bold; pointer-events: none; }
           </style>
         </head>
@@ -1217,35 +1227,32 @@ async function downloadPDF() {
           ${diagramHTML}
           
           <script>
+            // Increased timeout slightly to ensure all KaTeX webfonts finish downloading
             window.onload = () => {
               setTimeout(() => {
                 window.print();
-              }, 800);
+              }, 1000);
             };
           <\\/script>
         </body>
       </html>
     `;
-    // Note: The script tag above is escaped as <\\/script> to pass the parser!
 
-    // 1. Create the invisible iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '-10000px';
-    iframe.style.bottom = '-10000px';
+    const printWindow = window.open('', '_blank');
     
-    // 2. Use srcdoc instead of document.write to bypass local file CORS restrictions
-    iframe.srcdoc = printHTML.replace(/<\\\\\/script>/g, '<\\/script>');
-    document.body.appendChild(iframe);
-
-    // 3. Cleanup after a set time 
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
+    if (!printWindow) {
+      alert("Your browser blocked the popup. Please allow popups for this site to generate PDFs.");
       btn.innerHTML = originalText;
       btn.disabled = false;
-    }, 8000);
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(printHTML.replace(/<\\\\\/script>/g, '<\\/script>'));
+    printWindow.document.close();
+
+    btn.innerHTML = originalText;
+    btn.disabled = false;
 
   } catch (err) {
     console.error(err);
