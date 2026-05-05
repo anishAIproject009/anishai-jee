@@ -360,21 +360,6 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
   font-size:13px;font-weight:600;color:var(--or1);transform:rotate(-35deg);
   white-space:nowrap;padding:28px 14px;letter-spacing:1px;font-family:'Syne',sans-serif;
 }
-
-/* ── PASTE THE PRINT STYLES HERE ── */
-@media print {
-  body { background: white !important; color: black !important; display: block; }
-  body::before, body::after, #watermark, header, #dm-toggle, .asphyc-footer { display: none !important; }
-  .nav-tabs, .upload-zone, .or-row, textarea, .mode-row, #solve-btn, #verify-box, .post-actions, #followup-section, .similar-card, .sub-banner, .theory-search, .topic-chips { display: none !important; }
-  #app-page { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-  .result-card { border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; page-break-inside: avoid; }
-  .result-head { background: transparent !important; padding: 0 0 10px 0 !important; border-bottom: 2px solid #ff6a00 !important; }
-  .result-body { color: black !important; padding: 10px 0 !important; }
-  .math-line { background: #f9f9f9 !important; border-left: 2px solid #ff6a00 !important; color: black !important; page-break-inside: avoid; }
-  #diagram-wrap { page-break-inside: avoid; border: 1px solid #ccc !important; }
-  svg { max-width: 100% !important; height: auto !important; }
-}
-/* ───────────────────────────────── */
 </style>
 </head>
 <body>
@@ -431,7 +416,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
         </svg>
       </div>
     </div>
-    ANISH.AI</b> JEE
+    <b>ANISH.AI</b> JEE
   </div>
   <div class="hdr-right">
     <div class="quota-pill" id="quota-display">Loading...</div>
@@ -463,7 +448,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
           <div style="width:42px;height:4px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3.5s linear infinite;"></div>
         </div>
         <div>
-          <div class="wc-appname">ANISH.AI</b> JEE</div>
+          <div class="wc-appname"><b>ANISH.AI</b> JEE</div>
           <div class="wc-tagline">PHYSICS · CHEMISTRY · MATHS</div>
         </div>
       </div>
@@ -489,9 +474,9 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 
 <div id="login-page" class="page">
   <div class="login-card">
-    <div class="login-gloss">height:2px;background:linear-gradient(90deg,transparent,rgba(255,180,60,0.8),rgba(255,240,160,1),rgba(255,180,60,0.8),transparent);</div>
+    <div class="login-gloss"></div>
     <div class="login-inner">
-      <div class="login-logo">ANISH.AI</b> JEE</div>
+      <div class="login-logo"><b>ANISH.AI</b> JEE</div>
       <div class="login-sub">Physics · Chemistry · Maths</div>
       <div id="phone-step">
         <label class="inp-label">MOBILE NUMBER</label>
@@ -894,6 +879,7 @@ function removeImg(){
   document.getElementById('preview-wrap').style.display = 'none';
   document.getElementById('preview-img').src = '';
   document.getElementById('img-input').value = '';
+  document.getElementById('img-gallery').value = '';
   document.getElementById('pdf-input').value = '';
 }
 
