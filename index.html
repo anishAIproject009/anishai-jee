@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --bg:#09080a;--card:#141200;--card2:#1c1900;
@@ -359,6 +360,18 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
 .wm-text {
   font-size:13px;font-weight:600;color:var(--or1);transform:rotate(-35deg);
   white-space:nowrap;padding:28px 14px;letter-spacing:1px;font-family:'Syne',sans-serif;
+}
+@media print {
+  body { background: white !important; color: black !important; display: block; }
+  body::before, body::after, #watermark, header, #dm-toggle, .asphyc-footer { display: none !important; }
+  .nav-tabs, .upload-zone, .or-row, textarea, .mode-row, #solve-btn, #verify-box, .post-actions, #followup-section, .similar-card, .sub-banner, .theory-search, .topic-chips { display: none !important; }
+  #app-page { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+  .result-card { border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; page-break-inside: avoid; }
+  .result-head { background: transparent !important; padding: 0 0 10px 0 !important; border-bottom: 2px solid #ff6a00 !important; }
+  .result-body { color: black !important; padding: 10px 0 !important; }
+  .math-line { background: #f9f9f9 !important; border-left: 2px solid #ff6a00 !important; color: black !important; page-break-inside: avoid; }
+  #diagram-wrap { page-break-inside: avoid; border: 1px solid #ccc !important; }
+  svg { max-width: 100% !important; height: auto !important; }
 }
 </style>
 </head>
@@ -1164,169 +1177,16 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
 
 // ── PUBLISHING EXPORTS (PDF & LATEX) ──
 
-async function downloadPDF() {
-  const btn = document.getElementById('pdf-btn');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '⏳ Preparing PDF...';
-  btn.disabled = true;
-
-  try {
-    const qText = document.getElementById('q-text').value.trim() || 'Image based question';
-    const resultHTML = document.getElementById('result-body').innerHTML;
-    const diagramWrap = document.getElementById('diagram-wrap');
-    
-    let diagramHTML = '';
-    if (diagramWrap && diagramWrap.style.display === 'block') {
-      diagramHTML = `<div class="diagram-box">${diagramWrap.innerHTML}</div>`;
-    }
-
-    const printHTML = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>ANISH_Solution_${currentSub}_${Date.now()}</title>
-          <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-          <style>
-            html, body {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            body { 
-              font-family: 'Lora', serif; 
-              padding: 50px; 
-              color: #111; 
-              background: #fff; 
-              line-height: 1.8; 
-            }
-            .katex-display { margin: 1.5em 0 !important; }
-            h1, h2, h3 { 
-              font-family: 'Syne', sans-serif; 
-              color: #222; 
-              page-break-after: avoid; 
-            }
-            h3 { 
-              margin-top: 40px !important; 
-              margin-bottom: 16px !important; 
-              font-size: 18px; 
-            }
-            .header { 
-              border-bottom: 2px solid #ff6a00; 
-              padding-bottom: 16px; 
-              margin-bottom: 40px; 
-            }
-            .header h2 { 
-              color: #ff6a00; 
-              font-weight: 800; 
-              font-size: 26px; 
-              text-transform: uppercase; 
-              margin: 0 0 8px 0; 
-              letter-spacing: 1px; 
-            }
-            .header .meta { 
-              font-family: 'JetBrains Mono', monospace; 
-              font-size: 13px; 
-              color: #666; 
-            }
-            .question-box { 
-              background: #fdfdfd !important; 
-              border-left: 4px solid #ccc !important; 
-              padding: 24px !important; 
-              margin-bottom: 40px !important; 
-              font-size: 15px; 
-              page-break-inside: avoid; 
-            }
-            .math-line { 
-              display: block;
-              background: #fcfcfc !important; 
-              border: 1px solid #eee !important;
-              border-left: 3px solid #ff6a00 !important; 
-              padding: 24px !important; 
-              margin: 24px 0 !important; 
-              font-family: 'JetBrains Mono', monospace; 
-              white-space: pre-wrap; 
-              font-size: 14px; 
-              page-break-inside: avoid; 
-              border-radius: 6px;
-              overflow: visible !important; 
-              line-height: 2.5 !important; /* Forces tall fractions apart so they don't overlap */
-            }
-            .diagram-box { 
-              margin-top: 40px !important; 
-              border: 1px solid #eee !important; 
-              padding: 30px !important; 
-              text-align: center; 
-              page-break-inside: avoid; 
-              background: #fff !important;
-            }
-            svg { 
-              max-width: 100% !important; 
-              max-height: 350px !important; 
-              width: auto !important; 
-              height: auto !important; 
-            }
-            .kw { 
-              border-bottom: none !important; 
-              color: #ff6a00 !important; 
-              font-weight: bold; 
-              pointer-events: none; 
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h2>ANISH.AI</h2>
-            <div class="meta">Generated: ${new Date().toLocaleString()} | Subject: ${currentSub.toUpperCase()}</div>
-          </div>
-          
-          <h3 style="font-size: 18px; margin-bottom: 10px;">Source Question:</h3>
-          <div class="question-box">${esc(qText)}</div>
-          
-          <h3 style="font-size: 18px; margin-bottom: 15px;">AI Solution:</h3>
-          <div style="font-size: 15px;">
-            ${resultHTML}
-          </div>
-          
-          ${diagramHTML}
-          
-          <script>
-            // 1. Wait for the standard window load
-            window.addEventListener('load', () => {
-              // 2. Explicitly wait for KaTeX and Google Fonts to finish downloading and rendering
-              document.fonts.ready.then(() => {
-                // 3. Give the browser a tiny 0.8s buffer to paint the UI, then print
-                setTimeout(() => {
-                  window.print();
-                }, 800);
-              });
-            });
-          <\\/script>
-        </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    
-    if (!printWindow) {
-      alert("Your browser blocked the popup. Please allow popups for this site to generate PDFs.");
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      return;
-    }
-
-    printWindow.document.open();
-    printWindow.document.write(printHTML.replace(/<\\\\\/script>/g, '<\\/script>'));
-    printWindow.document.close();
-
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-
-  } catch (err) {
-    console.error(err);
-    alert('Failed to generate PDF. Check console.');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
+function downloadPDF() {
+  // Briefly change the document title so the browser suggests a nice default PDF filename
+  const originalTitle = document.title;
+  document.title = `ANISH_Solution_${currentSub}_${Date.now()}`;
+  
+  // Trigger the browser's native PDF/Print engine
+  window.print();
+  
+  // Restore the original title
+  document.title = originalTitle;
 }
 
 function downloadLaTeX() {
