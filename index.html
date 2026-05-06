@@ -346,7 +346,6 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
   header{padding:12px 14px;}
   #app-page{padding:20px 12px 60px;}
   .sec-title{font-size:1.2rem;}
-  /* Responsive fix: makes the 4 buttons stack nicely 2x2 on mobile */
   .mode-btn{min-width:calc(50% - 6px);font-size:0.66rem;}
   #user-phone{display:none;}
 }
@@ -833,7 +832,6 @@ function switchTab(tab){
 // ── SUBJECT / MODE ──
 function setSub(el,cls){document.querySelectorAll('.subj-btn').forEach(b=>b.className='subj-btn');el.classList.add('a'+cls);currentSub=el.dataset.sub;}
 
-// FIX: Updated setMode to include 'answers'
 function setMode(mode){
   currentMode=mode;const map={hint:'mh',full:'mf',verify:'mv',answers:'ma'};
   ['hint','full','verify','answers'].forEach(m=>{document.getElementById('btn-'+m).className='mode-btn'+(mode===m?' '+map[m]:'');});
@@ -844,7 +842,6 @@ function setMode(mode){
 function handleImg(e){if(e.target.files[0])loadImg(e.target.files[0]);}
 
 function loadImg(file){
-  // SAFETY CHECK: Prevent Vercel 4.5MB Payload Crash
   if (file.size > 3.5 * 1024 * 1024) {
       alert('File is too large. Please upload a file smaller than 3.5MB.');
       return;
@@ -858,12 +855,10 @@ function loadImg(file){
     document.getElementById('preview-wrap').style.display = 'block';
     
     if (imageType === 'application/pdf') {
-      // Show PDF icon instead of trying to render it as an image
       document.getElementById('preview-img').style.display = 'none';
       document.getElementById('pdf-label').style.display = 'block';
       document.getElementById('pdf-label').innerHTML = `📄 <b>PDF Uploaded:</b><br><br>${file.name}<br><span style="font-size:0.7rem;color:var(--muted)">Gemini will read all pages and extract the questions.</span>`;
     } else {
-      // Show normal image preview
       document.getElementById('preview-img').style.display = 'block';
       document.getElementById('pdf-label').style.display = 'none';
       document.getElementById('preview-img').src = ev.target.result;
@@ -915,8 +910,6 @@ function showResult(text,mode,subject){
   lastRawSolution = text;
 
   const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
-  
-  // FIX: Added 'ANSWERS ONLY' header mapping
   const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY',answers:'ANSWERS ONLY'}[mode];
   const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)',answers:'var(--cor)'}[mode];
   document.getElementById('result-head').innerHTML=`<span class="tag" style="color:${sc}">${subject.toUpperCase()}</span><span class="tag" style="color:${mc}">${ml}</span>`;
@@ -992,7 +985,6 @@ function formatText(raw){
     }
 
     if (/^[\*\-]\s+(.+)/.test(t)) {
-      // PREVIOUS FIX: color: inherit; applied here
       html += `<div style="margin-left: 18px; display: list-item; list-style-type: disc; color: inherit;">${esc(t.replace(/^[\*\-]\s+/, ''))}</div>`;
       continue;
     }
@@ -1134,101 +1126,77 @@ async function subscribe(){
   }catch(e){alert('Payment error. Try again.');}
 }
 
-// ── API ──
+// ── API HELPER (with automatic token refresh) ──
 async function apiFetch(path, body, auth = true, method = 'POST') {
   const headers = { 'Content-Type': 'application/json' };
-  
-  if (auth && session) {
-    headers['Authorization'] = 'Bearer ' + session.access_token;
+
+  // Refresh session before every auth call so token never expires mid-use
+  if (auth) {
+    try {
+      const { data: { session: freshSession } } = await supabaseClient.auth.getSession();
+      if (freshSession) {
+        session = freshSession;   // update global session
+      }
+    } catch (e) {
+      // if refresh fails, we continue and let the request fail naturally with 401
+    }
+
+    if (session) {
+      headers['Authorization'] = 'Bearer ' + session.access_token;
+    }
   }
-  
+
   const opts = { method, headers };
   if (method !== 'GET' && body) opts.body = JSON.stringify(body);
-  
+
   const res = await fetch(API + path, opts);
   const data = await res.json();
-  
+
   if (res.status === 401) {
-    await logout(); // Token expired or invalid
+    await logout();
     throw new Error('Session expired');
   }
-  
+
   if (!res.ok) {
     const err = new Error(data.message || data.error || 'Failed');
     err.code = data.error;
     throw err;
   }
-  
+
   return data;
 }
 
+// ── PDF DOWNLOAD (uses apiFetch, so token is fresh) ──
 async function downloadPDF(buttonElement) {
-  // 1. Lock the UI
   let originalText = "📄 Download PDF";
   if (buttonElement) {
     originalText = buttonElement.innerText;
     buttonElement.innerText = "Generating (~8s)...";
     buttonElement.disabled = true;
-    buttonElement.style.opacity = '0.5';
-    buttonElement.style.cursor = 'not-allowed';
   }
-
   try {
-    // 2. Use your existing global session variable
-    const token = session ? session.access_token : null;
-    if (!token) throw new Error('Authentication required. Please log in again.');
-
-    // 3. Gather exact data from your global state
-    const solutionText = lastRawSolution; 
-    if (!solutionText) throw new Error('No solution text found to generate PDF.');
-
-    // Grab the diagram SVG if it exists in the DOM
-    const diagramContainer = document.getElementById('diagram-container');
-    const svgContent = diagramContainer && diagramContainer.innerHTML.trim() !== '' 
-      ? diagramContainer.innerHTML 
-      : null;
-
-    // 4. Call Vercel Backend
-    const response = await fetch(API + '/api/pdf', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({
-        text: solutionText,
-        imageBase64: imageBase64, // From your global var
-        imageType: imageType,     // From your global var
-        svgDiagram: svgContent
-      })
+    const r = await apiFetch('/api/pdf', {
+      text: lastRawSolution,
+      imageBase64: imageBase64,
+      imageType: imageType,
+      svgDiagram: document.getElementById('diagram-container')?.innerHTML || null
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to generate PDF');
-    }
-
-    if (data.pdfUrl) {
-      window.open(data.pdfUrl, '_blank');
+    if (r.pdfUrl) {
+      window.open(r.pdfUrl, '_blank');
     } else {
-      throw new Error('PDF URL missing from server response.');
+      throw new Error('PDF URL missing');
     }
-
-  } catch (error) {
-    console.error('[PDF Generation Error]', error);
-    alert(`PDF Error: ${error.message}`);
+  } catch (err) {
+    alert('PDF Error: ' + err.message);
   } finally {
-    // 5. Unlock the UI
     if (buttonElement) {
       buttonElement.innerText = originalText;
       buttonElement.disabled = false;
-      buttonElement.style.opacity = '1';
-      buttonElement.style.cursor = 'pointer';
     }
   }
 }
 
+// ── LATEX DOWNLOAD ──
 function downloadLaTeX() {
   const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
   
