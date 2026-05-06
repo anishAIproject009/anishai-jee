@@ -571,8 +571,7 @@ textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
         <button class="act-btn act-theory"  onclick="askTheoryFromSolve()">📚 Explain Theory</button>
         <button class="act-btn act-diagram" id="diagram-btn" onclick="fetchDiagram()">📐 Show Diagram</button>
         
-        <button class="act-btn act-pdf" id="pdf-btn" onclick="downloadPDF()" style="background:rgba(32,160,96,0.1); color:var(--cor); border-color:var(--cor);">📄 Download PDF</button>
-        <button class="act-btn act-latex" onclick="downloadLaTeX()" style="background:rgba(192,128,240,0.1); color:var(--verify); border-color:var(--verify);">📝 Download LaTeX</button>
+<button class="act-btn act-pdf" id="pdf-btn" onclick="downloadPDF(this)" style="background:rgba(32,160,96,0.1); color:var(--cor); border-color:var(--cor);">📄 Download PDF</button>        <button class="act-btn act-latex" onclick="downloadLaTeX()" style="background:rgba(192,128,240,0.1); color:var(--verify); border-color:var(--verify);">📝 Download LaTeX</button>
       </div>
     </div>
 
@@ -1163,18 +1162,71 @@ async function apiFetch(path, body, auth = true, method = 'POST') {
   return data;
 }
 
-// ── PUBLISHING EXPORTS (PDF & LATEX) ──
+async function downloadPDF(buttonElement) {
+  // 1. Lock the UI
+  let originalText = "📄 Download PDF";
+  if (buttonElement) {
+    originalText = buttonElement.innerText;
+    buttonElement.innerText = "Generating (~8s)...";
+    buttonElement.disabled = true;
+    buttonElement.style.opacity = '0.5';
+    buttonElement.style.cursor = 'not-allowed';
+  }
 
-function downloadPDF() {
-  // Briefly change the document title so the browser suggests a nice default PDF filename
-  const originalTitle = document.title;
-  document.title = `ANISH_Solution_${currentSub}_${Date.now()}`;
-  
-  // Trigger the browser's native PDF/Print engine
-  window.print();
-  
-  // Restore the original title
-  document.title = originalTitle;
+  try {
+    // 2. Use your existing global session variable
+    const token = session ? session.access_token : null;
+    if (!token) throw new Error('Authentication required. Please log in again.');
+
+    // 3. Gather exact data from your global state
+    const solutionText = lastRawSolution; 
+    if (!solutionText) throw new Error('No solution text found to generate PDF.');
+
+    // Grab the diagram SVG if it exists in the DOM
+    const diagramContainer = document.getElementById('diagram-container');
+    const svgContent = diagramContainer && diagramContainer.innerHTML.trim() !== '' 
+      ? diagramContainer.innerHTML 
+      : null;
+
+    // 4. Call Vercel Backend
+    const response = await fetch(API + '/api/pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({
+        text: solutionText,
+        imageBase64: imageBase64, // From your global var
+        imageType: imageType,     // From your global var
+        svgDiagram: svgContent
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to generate PDF');
+    }
+
+    if (data.pdfUrl) {
+      window.open(data.pdfUrl, '_blank');
+    } else {
+      throw new Error('PDF URL missing from server response.');
+    }
+
+  } catch (error) {
+    console.error('[PDF Generation Error]', error);
+    alert(`PDF Error: ${error.message}`);
+  } finally {
+    // 5. Unlock the UI
+    if (buttonElement) {
+      buttonElement.innerText = originalText;
+      buttonElement.disabled = false;
+      buttonElement.style.opacity = '1';
+      buttonElement.style.cursor = 'pointer';
+    }
+  }
 }
 
 function downloadLaTeX() {
