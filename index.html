@@ -1,1237 +1,510 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANISH.AI — JEE Solver</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-<style>
-:root{
-  --bg:#09080a;--card:#141200;--card2:#1c1900;
-  --brd:rgba(255,106,0,0.15);--brd2:rgba(255,106,0,0.30);--brd3:rgba(255,106,0,0.50);
-  --or1:#ff6a00;--or2:#ff8c00;--or3:#ffb347;
-  --gls:rgba(255,106,0,0.07);--text:#fff5e6;--muted:#7a6040;
-  --hint:#f0c040;--verify:#c080f0;--cor:#60d080;--err:#f06060;--theory:#80c0ff;
-}
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ANISH.AI - Premium JEE Solver</title>
+    
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;family=Lora:ital,wght@0,400;0,500;1,400&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-/* ── LIGHT MODE ── */
-body.light-mode{
-  --bg:#fff8f0;--card:#ffffff;--card2:#fff3e6;
-  --brd:rgba(200,80,0,0.15);--brd2:rgba(200,80,0,0.28);--brd3:rgba(200,80,0,0.50);
-  --or1:#cc5500;--or2:#e06500;--or3:#f08020;
-  --gls:rgba(200,80,0,0.05);--text:#1a0800;--muted:#7a4020;
-  --hint:#8a6000;--verify:#6020a0;--cor:#1a7040;--err:#b03030;--theory:#2050a0;
-}
-
-/* ── TRANSITIONS ── */
-body,div,span,p,h1,h2,h3,button,input,select,textarea,a{
-  transition:background-color 0.4s ease,color 0.4s ease,border-color 0.3s ease !important;
-}
-
-*{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'Lora',serif;min-height:100vh;overflow-x:hidden;word-break:break-word;overflow-wrap:anywhere; display: flex; flex-direction: column;}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,106,0,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,106,0,0.025) 1px,transparent 1px);background-size:48px 48px;}
-body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:700px;height:400px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
-.gloss{height:2px;background:linear-gradient(90deg,transparent,#ff9040,#fff8e0,#ff9040,transparent);}
-
-/* AI Disclaimer */
-.ai-disclaimer{margin-top:14px;padding:10px 14px;border-radius:8px;background:var(--gls);border:1px solid var(--brd);font-size:0.72rem;color:var(--muted);line-height:1.5;opacity:0.75;}
-
-/* Footer */
-.asphyc-footer{text-align:center;padding:24px 0 16px;font-size:0.75rem;color:var(--muted);opacity:0.5;letter-spacing:0.5px;font-family:'Syne',sans-serif; margin-top: auto;}
-
-/* ── DARK/LIGHT MODE TOGGLE ── */
-#dm-toggle {
-    position: fixed;
-    bottom: 22px;
-    right: 18px;
-    z-index: 9999;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: 1px solid var(--brd2);
-    cursor: pointer;
-    background: rgba(255,106,0,0.12);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    box-shadow: 0 4px 20px rgba(255,106,0,0.25);
-    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), background-color 0.4s, box-shadow 0.4s;
-}
-#dm-toggle:hover {
-    transform: scale(1.1) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255,106,0,0.4);
-}
-#dm-toggle:active { transform: scale(0.9); }
-#dm-toggle span {
-    position: absolute;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-#dm-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0); }
-#dm-toggle .icon-sun { opacity: 1; transform: rotate(0deg) scale(1); }
-body.light-mode #dm-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0); }
-body.light-mode #dm-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
-
-/* ── SPLASH SCREEN ── */
-#splash{position:fixed;inset:0;z-index:9999;background:#0a0800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-#splash .sp-gloss{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff9040,#fff8e0,#ff9040,transparent);}
-#splash .sp-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,106,0,0.08) 0%,transparent 70%);pointer-events:none;}
-@keyframes splashFade{0%{opacity:1;}100%{opacity:0;pointer-events:none;}}
-.splash-hide{animation:splashFade 0.8s ease forwards;}
-@keyframes fullSpin{from{transform:rotateY(0deg) rotateX(6deg);}to{transform:rotateY(360deg) rotateX(6deg);}}
-@keyframes sheen-s{0%,40%,100%{opacity:0}48%{opacity:0.8}52%{opacity:0.8}60%{opacity:0}}
-@keyframes cshadow{0%,50%,100%{transform:scaleX(0.5);opacity:0.3}25%,75%{transform:scaleX(1);opacity:0.7}}
-.c3d{width:80px;height:80px;perspective:220px;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.ci{width:72px;height:72px;transform-style:preserve-3d;animation:fullSpin 3s linear infinite;}
-.csh{width:52px;height:6px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3s linear infinite;}
-.sr{animation:sheen-s 3s linear infinite;}
-@keyframes nameIn{0%,30%{opacity:0;transform:translateY(10px);}55%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
-@keyframes aiIn{0%,45%{opacity:0;}65%{opacity:1;}100%{opacity:1;}}
-@keyframes solverIn{0%,55%{opacity:0;transform:translateY(6px);}75%{opacity:1;transform:translateY(0);}100%{opacity:1;}}
-@keyframes p1In{0%,60%{opacity:0;transform:scale(0.5);}72%{opacity:1;transform:scale(1);}100%{opacity:1;}}
-@keyframes p2In{0%,68%{opacity:0;transform:scale(0.5);}80%{opacity:1;transform:scale(1);}100%{opacity:1;}}
-@keyframes p3In{0%,76%{opacity:0;transform:scale(0.5);}88%{opacity:1;transform:scale(1);}100%{opacity:1;}}
-
-.sp-name{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:0.1em;display:flex;align-items:baseline;gap:2px;}
-.sp-name .an{color:#fff5e6;animation:nameIn 3.5s ease-out both;}
-.sp-name .ai{color:#ff6a00;animation:aiIn 3.5s ease-out both;}
-.sp-solver{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.25em;color:rgba(255,106,0,0.65);animation:solverIn 3.5s ease-out both;}
-.sp-pills{display:flex;gap:8px;margin-top:4px;}
-.sp-pill{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:600;padding:4px 12px;border-radius:99px;border:1px solid rgba(255,106,0,0.35);color:#ff8030;background:rgba(255,106,0,0.1);}
-.sp-pill:nth-child(1){animation:p1In 3.5s ease-out both;}
-.sp-pill:nth-child(2){animation:p2In 3.5s ease-out both;}
-.sp-pill:nth-child(3){animation:p3In 3.5s ease-out both;}
-
-/* ── HEADER ── */
-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(9,8,10,0.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd);}
-body.light-mode header{background:rgba(255,248,240,0.96);}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:0.06em;display:flex;align-items:center;gap:12px;color:var(--text);}
-.logo b{color:#ff6a00;}
-.hdr-right{display:flex;align-items:center;gap:10px;}
-.quota-pill{font-family:'JetBrains Mono',monospace;font-size:0.66rem;padding:4px 10px;border-radius:99px;border:1px solid var(--brd2);color:var(--muted);background:var(--card);}
-.quota-pill.paid{border-color:var(--brd3);color:var(--or2);}
-.quota-pill.low{border-color:rgba(240,96,96,0.5);color:var(--err);}
-#user-phone{font-family:'JetBrains Mono',monospace;font-size:0.66rem;color:var(--muted);}
-.logout-btn{font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--brd2);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-.logout-btn:hover{color:var(--err);border-color:rgba(240,96,96,0.5);}
-
-/* ── PAGES ── */
-.page{display:none;position:relative;z-index:1; flex: 1;}
-.page.active{display:block;}
-
-/* ── WELCOME PAGE ── */
-#welcome-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.welcome-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--brd2);border-radius:22px;overflow:hidden;animation:fadeUp 0.6s ease;box-shadow:0 0 50px rgba(255,106,0,0.1);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-.wc-gloss{height:2px;background:linear-gradient(90deg,transparent,rgba(255,180,60,0.8),rgba(255,240,160,1),rgba(255,180,60,0.8),transparent);}
-.wc-hero{background:radial-gradient(ellipse at 50% 0%,rgba(255,106,0,0.1) 0%,transparent 70%);padding:32px 28px 24px;text-align:center;border-bottom:1px solid var(--brd);}
-.wc-logo-area{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px;}
-.wc-appname{font-family:'Syne',sans-serif;font-weight:800;font-size:1.7rem;letter-spacing:0.08em;color:var(--text);}
-.wc-appname b{color:#ff6a00;}
-.wc-tagline{font-size:0.78rem;color:rgba(255,106,0,0.6);letter-spacing:0.18em;font-family:'Syne',sans-serif;}
-.wc-statement{background:rgba(255,106,0,0.06);border:1px solid rgba(255,106,0,0.18);border-radius:12px;padding:16px 18px;margin:0 20px 18px;text-align:left;}
-.wc-statement p{font-size:0.82rem;line-height:1.85;color:var(--text);font-style:italic;}
-.wc-sig{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,106,0,0.15);}
-.wc-sig-name{font-size:0.85rem;font-weight:600;color:#ff6a00;font-family:'Syne',sans-serif;}
-.wc-sig-cred{font-size:0.75rem;color:rgba(255,160,80,0.7);margin-top:2px;}
-.wc-features{padding:0 20px 16px;display:flex;flex-direction:column;gap:8px;}
-.wc-feat{display:flex;align-items:center;gap:10px;background:rgba(255,106,0,0.04);border:1px solid rgba(255,106,0,0.1);border-radius:8px;padding:9px 12px;}
-.wc-feat-icon{font-size:14px;}
-.wc-feat-text{font-size:0.78rem;color:var(--text);line-height:1.4;}
-.wc-feat-text b{color:#ff9040;font-weight:600;}
-.wc-cta{margin:0 20px 14px;display:block;width:calc(100% - 40px);padding:14px;background:linear-gradient(135deg,#ff6a00,#ff9040);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.08em;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s;text-align:center;}
-.wc-cta:hover{transform:translateY(-2px);}
-.wc-free-note{text-align:center;font-size:0.72rem;color:rgba(255,106,0,0.5);padding-bottom:16px;letter-spacing:0.06em;}
-
-/* ── LOGIN PAGE ── */
-#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.login-card{width:100%;max-width:390px;background:var(--card);border:1px solid var(--brd2);border-radius:20px;overflow:hidden;animation:fadeUp 0.5s ease;box-shadow:0 0 40px rgba(255,106,0,0.08);}
-.login-gloss{height:2px;background:linear-gradient(90deg,transparent,rgba(255,180,60,0.8),rgba(255,240,160,1),rgba(255,180,60,0.8),transparent);}
-.login-inner{padding:36px 32px;}
-.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;text-align:center;margin-bottom:4px;color:var(--text);}
-.login-logo b{color:#ff6a00;}
-.login-sub{text-align:center;color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:28px;}
-.inp-label{font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;color:var(--muted);display:block;margin-bottom:7px;}
-.inp-field{width:100%;padding:13px 15px;background:var(--card2);border:1px solid var(--brd2);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.96rem;transition:border-color 0.2s;margin-bottom:14px;}
-.inp-field:focus{outline:none;border-color:var(--or1);box-shadow:0 0 0 3px rgba(255,106,0,0.08);}
-.inp-field::placeholder{color:var(--muted);font-size:0.8rem;}
-.primary-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.08em;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s,opacity 0.2s;}
-.primary-btn:hover:not(:disabled){transform:translateY(-2px);}
-.primary-btn:disabled{opacity:0.35;cursor:not-allowed;}
-.login-note{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:14px;font-style:italic;}
-.free-badge{display:block;width:fit-content;margin:14px auto 0;background:rgba(255,106,0,0.1);border:1px solid var(--brd2);border-radius:99px;padding:5px 14px;font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;color:var(--or2);}
-
-/* ── APP PAGE ── */
-#app-page{max-width:860px;margin:0 auto;padding:32px 18px 20px; width: 100%;}
-.nav-tabs{display:flex;gap:5px;margin-bottom:28px;background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:5px;}
-.nav-tab{flex:1;padding:10px;border-radius:8px;border:none;background:transparent;font-family:'Syne',sans-serif;font-weight:700;font-size:0.76rem;letter-spacing:0.07em;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-.nav-tab.active{background:linear-gradient(135deg,rgba(255,106,0,0.18),rgba(255,140,0,0.1));color:var(--or1);border:1px solid var(--brd2);box-shadow:0 0 12px rgba(255,106,0,0.1);}
-.sec-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;margin-bottom:4px;color:var(--text);}
-.sec-title em{color:var(--or1);font-style:italic;}
-.sec-sub{color:var(--muted);font-size:0.82rem;font-style:italic;margin-bottom:24px;}
-
-/* Subject pills */
-.subj-row{display:flex;gap:6px;margin-bottom:18px;}
-.subj-btn{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;padding:7px 4px;border-radius:99px;border:1px solid var(--brd);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;text-align:center;white-space:nowrap;}
-.subj-btn.am{background:rgba(255,106,0,0.1);color:var(--or1);border-color:var(--or1);box-shadow:0 0 8px rgba(255,106,0,0.15);}
-.subj-btn.ap{background:rgba(64,192,240,0.1);color:#40c0f0;border-color:#40c0f0;}
-.subj-btn.ac{background:rgba(255,179,71,0.1);color:var(--or3);border-color:var(--or3);}
-
-/* Upload */
-.upload-zone{border:1.5px dashed var(--brd2);border-radius:12px;padding:32px 18px;text-align:center;cursor:pointer;background:var(--gls);transition:all 0.3s;}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--or1);background:rgba(255,106,0,0.05);box-shadow:0 0 20px rgba(255,106,0,0.07);}
-.upload-zone input{display:none;}
-.up-sub{color:var(--muted);font-size:0.75rem;font-style:italic;}
-#preview-wrap{display:none;margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--brd2);position:relative;}
-#preview-img{width:100%;max-height:300px;object-fit:contain;background:var(--card2);display:block;}
-.rm-img{position:absolute;top:8px;right:8px;background:rgba(9,8,10,0.9);border:1px solid var(--brd2);color:var(--muted);border-radius:99px;padding:3px 10px;font-size:0.68rem;cursor:pointer;font-family:'Syne',sans-serif;transition:color 0.2s;}
-.rm-img:hover{color:var(--err);}
-.or-row{display:flex;align-items:center;gap:10px;margin:13px 0 9px;}
-.or-row span{color:var(--muted);font-size:0.72rem;white-space:nowrap;}
-.or-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--brd2),transparent);}
-textarea.q-text{width:100%;background:var(--card);border:1px solid var(--brd2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Lora',serif;font-size:0.88rem;resize:vertical;min-height:58px;transition:border-color 0.2s;}
-textarea.q-text:focus{outline:none;border-color:var(--or1);}
-textarea.q-text::placeholder{color:var(--muted);font-style:italic;}
-
-/* Mode buttons */
-.mode-row{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap;}
-.mode-btn{flex:1;min-width:70px;padding:9px 6px;border-radius:9px;border:1px solid var(--brd);background:var(--card);color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.6;}
-.mode-btn.mh{background:rgba(240,192,64,0.08);color:var(--hint);border-color:var(--hint);}
-.mode-btn.mf{background:rgba(255,106,0,0.1);color:var(--or1);border-color:var(--or1);box-shadow:0 0 8px rgba(255,106,0,0.1);}
-.mode-btn.mv{background:rgba(192,128,240,0.08);color:var(--verify);border-color:var(--verify);}
-.mode-btn.ma{background:rgba(96,208,128,0.08);color:var(--cor);border-color:var(--cor);box-shadow:0 0 8px rgba(96,208,128,0.1);}
-
-/* Verify box */
-#verify-box{display:none;margin-top:10px;background:var(--card);border:1px solid var(--verify);border-radius:10px;padding:13px 14px;}
-#verify-box label{font-family:'Syne',sans-serif;font-size:0.68rem;color:var(--verify);display:block;margin-bottom:7px;}
-#student-ans{width:100%;background:var(--card2);border:1px solid var(--brd2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Lora',serif;font-size:0.86rem;resize:vertical;min-height:52px;}
-#student-ans:focus{outline:none;border-color:var(--verify);}
-#student-ans::placeholder{color:var(--muted);font-style:italic;}
-
-/* Solve button */
-#solve-btn{display:block;width:100%;margin-top:14px;padding:14px;border-radius:11px;border:none;cursor:pointer;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.09em;color:#09080a;box-shadow:0 4px 24px rgba(255,106,0,0.5);transition:transform 0.15s,box-shadow 0.2s;}
-#solve-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 30px rgba(255,106,0,0.6);}
-#solve-btn:disabled{opacity:0.3;cursor:not-allowed;box-shadow:none;}
-
-/* ATOM LOADER */
-#loader{display:none;text-align:center;padding:36px 0;}
-#theory-loader{display:none;text-align:center;padding:36px 0;}
-.atom-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:12px;}
-.atom{position:relative;width:90px;height:90px;}
-.nucleus{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#ff6a00;box-shadow:0 0 10px #ff6a00,0 0 22px rgba(255,106,0,0.5);animation:npulse 1.8s ease-in-out infinite;}
-@keyframes npulse{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.35);}}
-.orbit{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid rgba(255,106,0,0.2);}
-.o1{width:40px;height:40px;margin:-20px 0 0 -20px;animation:sp1 2.2s linear infinite;}
-.o2{width:64px;height:64px;margin:-32px 0 0 -32px;animation:sp2 3.1s linear infinite;transform:rotate(60deg);}
-.o3{width:88px;height:88px;margin:-44px 0 0 -44px;animation:sp3 4.0s linear infinite;transform:rotate(120deg);}
-@keyframes sp1{to{transform:rotate(360deg);}}
-@keyframes sp2{from{transform:rotate(60deg);}to{transform:rotate(420deg);}}
-@keyframes sp3{from{transform:rotate(120deg);}to{transform:rotate(480deg);}}
-.elec{position:absolute;top:-5px;left:50%;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:#ff6a00;box-shadow:0 0 5px #ff6a00;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:5px;font-weight:700;color:#fff;}
-.e1{animation:co1 2.2s linear infinite;}
-.e2{animation:co2 3.1s linear infinite;}
-.e3{animation:co3 4.0s linear infinite;}
-@keyframes co1{to{transform:rotate(-360deg);}}
-@keyframes co2{from{transform:rotate(-60deg);}to{transform:rotate(-420deg);}}
-@keyframes co3{from{transform:rotate(-120deg);}to{transform:rotate(-480deg);}}
-.solving-txt{font-family:'Syne',sans-serif;font-size:0.76rem;color:var(--muted);letter-spacing:0.12em;}
-.sdot{animation:sd 1.4s ease-in-out infinite;opacity:0;}
-.sdot:nth-child(2){animation-delay:0.2s;}
-.sdot:nth-child(3){animation-delay:0.4s;}
-@keyframes sd{0%,80%,100%{opacity:0;}40%{opacity:1;}}
-
-/* Result card */
-.result-card{display:none;margin-top:20px;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;box-shadow:0 0 30px rgba(255,106,0,0.06);}
-.result-head{padding:11px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:rgba(255,106,0,0.04);}
-.tag{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;padding:2px 8px;border-radius:99px;border:1px solid currentColor;}
-.verdict{padding:12px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;}
-.v-ok{background:rgba(96,208,128,0.08);color:#60d080;}
-.v-bad{background:rgba(240,96,96,0.08);color:#f06060;}
-.v-mid{background:rgba(255,106,0,0.08);color:var(--or2);}
-
-/* Motivational note */
-.motive-note{margin:12px 18px;padding:12px 14px;border-radius:10px;font-size:0.82rem;line-height:1.75;font-style:italic;}
-.motive-note.correct{background:rgba(96,208,128,0.07);border:1px solid rgba(96,208,128,0.2);color:var(--cor);}
-.motive-note.wrong{background:rgba(240,96,96,0.07);border:1px solid rgba(240,96,96,0.2);color:var(--err);}
-.motive-note.partial{background:rgba(255,106,0,0.07);border:1px solid rgba(255,106,0,0.2);color:var(--or3);}
-.motive-sig{margin-top:8px;font-size:0.78rem;font-weight:600;font-style:normal;color:var(--or1);font-family:'Syne',sans-serif;}
-
-/* Solution body */
-.result-body{padding:18px 20px;font-size:0.9rem;line-height:1.95;font-family:'Lora',serif;word-break:break-word;overflow-wrap:anywhere;}
-.result-body h3{font-family:'Syne',sans-serif;font-size:0.86rem;font-weight:700;color:var(--or1);margin:14px 0 5px;}
-.math-line{display:block;background:rgba(255,106,0,0.06);border-left:2.5px solid var(--or1);padding:7px 12px;margin:7px 0;border-radius:0 7px 7px 0;font-family:'JetBrains Mono',monospace;font-size:0.83rem;color:var(--or3);white-space:pre-wrap;}
-.diagram-wrap{margin:14px 0;background:rgba(255,106,0,0.03);border:1px solid var(--brd);border-radius:10px;padding:12px;overflow-x:auto;}
-.diagram-wrap svg{max-width:100%;}
-
-/* Post actions */
-.post-actions{display:none;padding:0 16px 16px;gap:7px;flex-wrap:wrap;}
-.act-btn{padding:7px 14px;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s;border:1px solid;}
-.act-reveal{color:var(--hint);border-color:var(--hint);background:rgba(240,192,64,0.07);}
-.act-reveal:hover{background:rgba(240,192,64,0.14);}
-.act-similar{color:#40c0f0;border-color:#40c0f0;background:rgba(64,192,240,0.07);}
-.act-similar:hover{background:rgba(64,192,240,0.14);}
-.act-theory{color:var(--theory);border-color:var(--theory);background:rgba(128,192,255,0.07);}
-.act-theory:hover{background:rgba(128,192,255,0.14);}
-.act-diagram{color:#ff9040;border-color:rgba(255,144,64,0.5);background:rgba(255,106,0,0.07);}
-.act-diagram:hover{background:rgba(255,106,0,0.15);}
-
-/* Follow-up */
-#followup-section{display:none;margin-top:12px;background:var(--card2);border:1px solid var(--brd2);border-radius:10px;padding:12px 14px;}
-#followup-section label{font-family:'Syne',sans-serif;font-size:0.68rem;color:#40c0f0;display:block;margin-bottom:7px;}
-.fu-count{font-size:0.62rem;color:var(--muted);float:right;}
-#followup-text{width:100%;background:var(--card);border:1px solid var(--brd2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Lora',serif;font-size:0.85rem;resize:vertical;min-height:46px;}
-#followup-text:focus{outline:none;border-color:#40c0f0;}
-#followup-text::placeholder{color:var(--muted);font-style:italic;}
-#followup-btn{margin-top:8px;padding:7px 16px;border-radius:7px;background:rgba(64,192,240,0.08);border:1px solid #40c0f0;color:#40c0f0;font-family:'Syne',sans-serif;font-weight:700;font-size:0.74rem;cursor:pointer;transition:all 0.2s;}
-#followup-btn:hover{background:rgba(64,192,240,0.16);}
-#followup-btn:disabled{opacity:0.3;cursor:not-allowed;}
-
-/* Similar */
-.similar-card{display:none;margin-top:18px;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;}
-.similar-head{padding:11px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;color:#40c0f0;background:rgba(64,192,240,0.04);}
-.similar-body{padding:14px 18px;counter-reset:qnum;}
-.q-item{padding:10px 12px 10px 36px;margin-bottom:8px;border:1px solid rgba(255,106,0,0.12);border-radius:8px;font-size:0.86rem;line-height:1.7;background:rgba(255,106,0,0.03);position:relative;counter-increment:qnum;color:var(--text);}
-.q-item::before{content:counter(qnum);position:absolute;left:10px;top:10px;font-family:'JetBrains Mono',monospace;font-size:0.66rem;font-weight:600;color:var(--or1);background:rgba(255,106,0,0.12);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center;}
-.q-answer{font-size:0.78rem;color:var(--or3);margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,106,0,0.1);}
-.q-answer b{color:var(--or1);}
-
-/* Theory */
-.theory-search{display:flex;gap:8px;margin-bottom:20px;}
-.theory-search input{flex:1;padding:12px 14px;background:var(--card);border:1px solid var(--brd2);border-radius:10px;color:var(--text);font-family:'Lora',serif;font-size:0.88rem;}
-.theory-search input:focus{outline:none;border-color:var(--theory);}
-.theory-search input::placeholder{color:var(--muted);font-style:italic;}
-.theory-search button{padding:10px 18px;border-radius:10px;background:rgba(128,192,255,0.08);border:1px solid var(--theory);color:var(--theory);font-family:'Syne',sans-serif;font-weight:700;font-size:0.76rem;cursor:pointer;transition:all 0.2s;}
-.theory-search button:hover{background:rgba(128,192,255,0.16);}
-.topic-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
-.chip{padding:5px 12px;border-radius:99px;border:1px solid var(--brd);background:var(--card);font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-.chip:hover{color:var(--or1);border-color:var(--or1);background:rgba(255,106,0,0.07);}
-.theory-card{display:none;background:var(--card);border:1px solid var(--brd2);border-radius:13px;overflow:hidden;animation:fadeUp 0.4s ease;}
-.theory-head{padding:11px 18px;border-bottom:1px solid var(--brd);font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;color:var(--theory);background:rgba(128,192,255,0.04);}
-.theory-body{padding:18px 20px;font-size:0.9rem;line-height:1.95;font-family:'Lora',serif;color:var(--text);}
-.theory-body h3{font-family:'Syne',sans-serif;font-size:0.86rem;font-weight:700;color:var(--theory);margin:14px 0 5px;}
-
-/* Subscribe banner */
-.sub-banner{display:none;margin-top:16px;background:linear-gradient(135deg,rgba(255,106,0,0.1),rgba(255,140,0,0.06));border:1px solid var(--brd2);border-radius:13px;padding:22px 18px;text-align:center;animation:fadeUp 0.4s ease;}
-.sub-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--or1);margin-bottom:4px;}
-.sub-desc{color:var(--muted);font-size:0.8rem;font-style:italic;margin-bottom:14px;}
-.sub-price{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;color:var(--or1);}
-.sub-price span{font-size:0.82rem;font-weight:400;color:var(--muted);}
-.sub-feats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:12px 0 16px;}
-.sub-feat{font-size:0.76rem;color:var(--text);display:flex;align-items:center;gap:4px;}
-.sub-feat::before{content:'✓';color:var(--cor);font-weight:700;}
-.pay-btn{padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#ff6a00,#ff9040);font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;color:#09080a;cursor:pointer;box-shadow:0 4px 20px rgba(255,106,0,0.45);transition:transform 0.15s;}
-.pay-btn:hover{transform:translateY(-2px);}
-
-/* Keyword popup */
-.kw{border-bottom:1px dotted var(--or2);cursor:pointer;color:var(--or2);transition:color 0.2s;}
-.kw:hover{color:var(--or1);}
-.kw-popup{display:none;position:fixed;z-index:1000;background:var(--card);border:1px solid var(--brd2);border-radius:14px;padding:18px 20px;max-width:300px;box-shadow:0 8px 40px rgba(0,0,0,0.5);animation:fadeUp 0.2s ease;}
-.kw-popup.show{display:block;}
-.kw-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:var(--or1);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--brd);}
-.kw-body{font-size:0.78rem;line-height:1.7;color:var(--text);}
-.kw-body b{color:var(--or2);}
-.kw-body .kw-formula{display:block;background:rgba(255,106,0,0.08);padding:5px 8px;border-radius:6px;margin:5px 0;font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--or1);}
-.kw-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;}
-.kw-overlay{display:none;position:fixed;inset:0;z-index:999;background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);}
-.kw-overlay.show{display:block;}
-
-@media(max-width:600px){
-  header{padding:12px 14px;}
-  #app-page{padding:20px 12px 60px;}
-  .sec-title{font-size:1.2rem;}
-  .mode-btn{min-width:calc(50% - 6px);font-size:0.66rem;}
-  #user-phone{display:none;}
-}
-
-/* Watermark */
-#watermark {
-  position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden;opacity:0.045;
-  display:flex;flex-wrap:wrap;align-content:flex-start;gap:0;
-}
-.wm-text {
-  font-size:13px;font-weight:600;color:var(--or1);transform:rotate(-35deg);
-  white-space:nowrap;padding:28px 14px;letter-spacing:1px;font-family:'Syne',sans-serif;
-}
-</style>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#e2e2e2",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#474746",
+                        "primary-fixed": "#ffdbc8",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-surface": "#e2e2e2",
+                        "error-container": "#93000a",
+                        "tertiary": "#95ccff",
+                        "inverse-on-surface": "#303030",
+                        "on-primary-fixed": "#321200",
+                        "on-tertiary-fixed-variant": "#004a75",
+                        "surface-variant": "#353535",
+                        "secondary": "#c8c6c5",
+                        "surface-dim": "#131313",
+                        "inverse-primary": "#994700",
+                        "surface-container-low": "#1b1b1b",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#e0c0af",
+                        "outline-variant": "#584235",
+                        "tertiary-fixed-dim": "#95ccff",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-error": "#690005",
+                        "surface-container-high": "#1a1a1a",
+                        "inverse-surface": "#e2e2e2",
+                        "surface": "#0a0a0a",
+                        "on-secondary-container": "#b7b5b4",
+                        "primary-fixed-dim": "#ffb68b",
+                        "on-primary-fixed-variant": "#753400",
+                        "on-primary-container": "#5c2800",
+                        "primary": "#ff5500", 
+                        "background": "#050505", 
+                        "on-secondary": "#313030",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#050505",
+                        "on-tertiary-fixed": "#001d32",
+                        "primary-container": "#ff7a00",
+                        "surface-container": "#111111",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-tint": "#ffb68b",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-tertiary": "#003352",
+                        "on-tertiary-container": "#003a5c",
+                        "tertiary-container": "#00a8ff",
+                        "surface-container-highest": "#222222",
+                        "surface-elevated": "#0a0a0a",
+                        "outline": "#ff5500",
+                        "glass-stroke": "rgba(255, 85, 0, 0.4)", 
+                        "text-muted": "#a1a1aa",
+                    },
+                    boxShadow: {
+                        'glow-sm': '0 0 10px rgba(255,85,0,0.2)',
+                        'glow-md': '0 0 15px rgba(255,85,0,0.3)',
+                        'glow-lg': '0 0 30px rgba(255,85,0,0.5)',
+                        'glow-inner': 'inset 0 0 20px rgba(255,85,0,0.05)',
+                    },
+                    fontFamily: {
+                        "headline-md": ["Syne"],
+                        "technical-step": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-caps": ["JetBrains Mono"],
+                        "math-code": ["JetBrains Mono"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Syne"],
+                        "editorial-note": ["Lora"],
+                        "display-lg": ["Syne"]
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'spin-slow': 'spin 3s linear infinite',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '1', filter: 'drop-shadow(0 0 8px rgba(255,85,0,0.6))' },
+                            '50%': { opacity: '0.8', filter: 'drop-shadow(0 0 16px rgba(255,85,0,1))' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="20" font-weight="bold" fill="white" transform="rotate(-45 100 100)">9876543210</text></svg>');
+            opacity: 0.02;
+            z-index: 50;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .transition-all-fluid { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Markdown rendering styles */
+        #result-body p { margin-bottom: 1rem; line-height: 1.7; }
+        #result-body ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; }
+        #result-body ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        #result-body h3 { font-family: 'Syne', sans-serif; color: var(--tw-colors-primary); font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .katex-display { overflow-x: auto; max-width: 100%; padding-bottom: 5px; }
+    </style>
 </head>
-<body>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-x-hidden">
+<div class="watermark"></div>
 
-<div id="splash">
-  <div class="sp-gloss"></div>
-  <div class="sp-bg"></div>
-  <div class="c3d">
-    <div class="ci">
-      <svg width="72" height="72" viewBox="0 0 46 46" fill="none">
-        <defs>
-          <linearGradient id="hgSp" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient>
-          <linearGradient id="llSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient>
-          <linearGradient id="rlSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff9040"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient>
-          <linearGradient id="sgSp" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="49%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="51%" stop-color="white" stop-opacity="0"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient>
-        </defs>
-        <circle cx="23" cy="7" r="4.5" fill="url(#hgSp)" stroke="#cc4400" stroke-width="0.7"/>
-        <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
-        <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llSp)" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="15" cy="40.5" r="0.8" fill="#ff6a00"/>
-        <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="url(#rlSp)" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <g transform="rotate(32,33,35)"><rect x="30.5" y="30" width="5" height="9" rx="1.2" fill="#ffe0a0" stroke="#ffb347" stroke-width="0.8"/><polygon points="30.5,39 33,44 35.5,39" fill="#f5c060"/><circle cx="33" cy="44" r="1" fill="#444"/></g>
-        <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
-        <rect class="sr" x="0" y="0" width="46" height="46" fill="url(#sgSp)" rx="2"/>
-      </svg>
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-glass-stroke shadow-glow-sm px-5 md:px-16 py-4 flex items-center justify-between transition-all-fluid">
+    <div class="flex items-center gap-4">
+        <h1 class="font-display-lg text-primary text-2xl tracking-tight" style="text-shadow: 0 0 10px rgba(255,85,0,0.5);">ANISH.AI</h1>
+        <div class="hidden sm:flex items-center gap-2 bg-surface-container-high px-3 py-1.5 rounded-full border border-glass-stroke shadow-glow-sm">
+            <span class="material-symbols-outlined text-primary text-sm">verified</span>
+            <span class="text-xs font-label-caps text-on-surface-variant">Quality Verified by IITians</span>
+        </div>
     </div>
-    <div class="csh"></div>
-  </div>
-  <div class="sp-name"><span class="an">ANISH</span><span class="ai">.AI</span></div>
-  <div class="sp-solver">JEE SOLVER</div>
-  <div class="sp-pills">
-    <div class="sp-pill">Physics</div>
-    <div class="sp-pill">Chemistry</div>
-    <div class="sp-pill">Maths</div>
-  </div>
-</div>
-
-<div class="gloss"></div>
-
-<header id="main-header" style="display:none">
-  <div class="logo">
-    <div style="width:32px;height:32px;perspective:160px;display:flex;flex-direction:column;align-items:center;gap:2px;">
-      <div style="width:28px;height:28px;transform-style:preserve-3d;animation:fullSpin 3s linear infinite;">
-        <svg width="28" height="28" viewBox="0 0 46 46" fill="none">
-          <defs><linearGradient id="hgH" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient><linearGradient id="llH" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient><linearGradient id="sgH" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient></defs>
-          <circle cx="23" cy="7" r="4.5" fill="url(#hgH)" stroke="#cc4400" stroke-width="0.7"/>
-          <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
-          <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llH)" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="#ff9040" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
-          <rect style="animation:sheen-s 3s linear infinite;" x="0" y="0" width="46" height="46" fill="url(#sgH)" rx="2"/>
-        </svg>
-      </div>
+    <div class="flex items-center gap-4">
+        <div class="flex flex-col items-end gap-1">
+            <span class="text-xs font-label-caps text-on-surface-variant" id="quota-display">Loading Quota...</span>
+            <div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden border border-glass-stroke/50">
+                <div class="h-full bg-primary rounded-full transition-all-fluid w-full shadow-glow-sm"></div>
+            </div>
+        </div>
     </div>
-    <b>ANISH.AI</b> JEE
-  </div>
-  <div class="hdr-right">
-    <div class="quota-pill" id="quota-display">Loading...</div>
-    <div id="user-phone"></div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
 </header>
 
-<div id="welcome-page" class="page">
-  <div class="welcome-card">
-    <div class="wc-gloss"></div>
-    <div class="wc-hero">
-      <div class="wc-logo-area">
-        <div style="width:64px;height:64px;perspective:200px;display:flex;flex-direction:column;align-items:center;gap:3px;">
-          <div style="width:58px;height:58px;transform-style:preserve-3d;animation:fullSpin 3.5s linear infinite;">
-            <svg width="58" height="58" viewBox="0 0 46 46" fill="none">
-              <defs><linearGradient id="hgW" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="50%" stop-color="#ff6a00"/><stop offset="100%" stop-color="#cc4400"/></linearGradient><linearGradient id="llW" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb347"/><stop offset="100%" stop-color="#ff6a00"/></linearGradient><linearGradient id="sgW" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="white" stop-opacity="0"/><stop offset="49%" stop-color="white" stop-opacity="0"/><stop offset="50%" stop-color="white" stop-opacity="0.9"/><stop offset="51%" stop-color="white" stop-opacity="0"/><stop offset="100%" stop-color="white" stop-opacity="0"/></linearGradient></defs>
-              <circle cx="23" cy="7" r="4.5" fill="url(#hgW)" stroke="#cc4400" stroke-width="0.7"/>
-              <circle cx="23" cy="7" r="2" fill="#ffe0a0" opacity="0.9"/>
-              <path d="M21.5 10.5 C20 17, 17.5 24, 15 33" stroke="url(#llW)" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <line x1="15" y1="34" x2="15" y2="40" stroke="#ff6a00" stroke-width="1.5" stroke-linecap="round"/>
-              <circle cx="15" cy="40.5" r="0.8" fill="#ff6a00"/>
-              <path d="M24.5 10.5 C27 17, 30 23, 33 31" stroke="#ff9040" stroke-width="3" stroke-linecap="round" fill="none"/>
-              <g transform="rotate(32,33,35)"><rect x="30.5" y="30" width="5" height="9" rx="1.2" fill="#ffe0a0" stroke="#ffb347" stroke-width="0.8"/><polygon points="30.5,39 33,44 35.5,39" fill="#f5c060"/><circle cx="33" cy="44" r="1" fill="#444"/></g>
-              <circle cx="23" cy="27" r="11" stroke="rgba(255,106,0,0.3)" stroke-width="1" fill="none" stroke-dasharray="2.5 2"/>
-              <rect style="animation:sheen-s 3.5s linear infinite;" x="0" y="0" width="46" height="46" fill="url(#sgW)" rx="2"/>
-            </svg>
-          </div>
-          <div style="width:42px;height:4px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,106,0,0.5) 0%,transparent 70%);animation:cshadow 3.5s linear infinite;"></div>
-        </div>
+<main class="max-w-4xl mx-auto px-5 md:px-16 py-8 md:py-12 space-y-12">
+    
+    <section class="bg-surface-elevated border border-glass-stroke shadow-glow-sm rounded-xl p-6 md:p-8 space-y-8 transition-all-fluid">
         <div>
-          <div class="wc-appname"><b>ANISH.AI</b> JEE</div>
-          <div class="wc-tagline">PHYSICS · CHEMISTRY · MATHS</div>
+            <h2 class="font-headline-sm text-on-surface mb-4">Select Subject</h2>
+            <div class="flex flex-wrap gap-3" id="subject-container">
+                <button onclick="setSub('Physics', this)" class="subj-btn px-5 py-2.5 rounded-full border border-primary text-primary bg-primary/10 font-medium transition-all-fluid shadow-glow-md">Physics</button>
+                <button onclick="setSub('Chemistry', this)" class="subj-btn px-5 py-2.5 rounded-full border border-glass-stroke text-on-surface-variant bg-surface-container hover:border-primary/50 hover:bg-surface-container-high transition-all-fluid">Chemistry</button>
+                <button onclick="setSub('Mathematics', this)" class="subj-btn px-5 py-2.5 rounded-full border border-glass-stroke text-on-surface-variant bg-surface-container hover:border-primary/50 hover:bg-surface-container-high transition-all-fluid">Mathematics</button>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="wc-statement">
-      <p>"This app doesn't just solve your problems — it guides you, assists you, and motivates you towards complete understanding. Every solution comes with similar practice questions and supporting theory, so you grow with every doubt you clear."</p>
-      <div class="wc-sig">
-        <div class="wc-sig-name">Anish Srivastava</div>
-        <div class="wc-sig-cred">B.Tech, IIT/K</div>
-      </div>
-    </div>
-    <div class="wc-features">
-      <div class="wc-feat"><span class="wc-feat-icon">📷</span><div class="wc-feat-text"><b>Upload any question</b> — camera, gallery or type it</div></div>
-      <div class="wc-feat"><span class="wc-feat-icon">📖</span><div class="wc-feat-text"><b>Hint · Full Solution · Verify</b> — you choose how much help</div></div>
-      <div class="wc-feat"><span class="wc-feat-icon">📐</span><div class="wc-feat-text"><b>Auto diagrams</b> — labelled, specific to your question</div></div>
-      <div class="wc-feat"><span class="wc-feat-icon">📚</span><div class="wc-feat-text"><b>Theory always free</b> — concepts at your fingertips</div></div>
-      <div class="wc-feat"><span class="wc-feat-icon">🔁</span><div class="wc-feat-text"><b>Similar questions with answers</b> — practice the same concept</div></div>
-    </div>
-    <button class="wc-cta" onclick="showLogin()">START FOR FREE →</button>
-    <div class="wc-free-note">🎁 5 free questions · No payment needed</div>
-  </div>
-</div>
-
-<div id="login-page" class="page">
-  <div class="login-card">
-    <div class="login-gloss"></div>
-    <div class="login-inner">
-      <div class="login-logo"><b>ANISH.AI</b> JEE</div>
-      <div class="login-sub">Physics · Chemistry · Maths</div>
-      <div id="phone-step">
-        <label class="inp-label">MOBILE NUMBER</label>
-        <input type="tel" class="inp-field" id="phone-input" maxlength="10" placeholder="10-digit mobile number">
-        <button class="primary-btn" onclick="sendOTP()">SEND OTP →</button>
-        <div class="free-badge">🎁 5 free questions — no payment needed</div>
-        <p class="login-note">OTP will be sent via SMS</p>
-      </div>
-      <div id="otp-step" style="display:none">
-        <label class="inp-label">ENTER OTP</label>
-        <input type="text" class="inp-field" id="otp-input" maxlength="6" placeholder="6-digit OTP" style="letter-spacing:0.3em;font-size:1.1rem;text-align:center">
-        <button class="primary-btn" onclick="verifyOTP()">VERIFY & LOGIN →</button>
-        <p class="login-note" style="margin-top:10px"><a href="#" onclick="showPhoneStep()" style="color:var(--or1);text-decoration:none">← Change number</a></p>
-      </div>
-      <div id="login-msg" style="margin-top:12px;text-align:center;font-size:0.78rem;color:var(--muted)"></div>
-    </div>
-  </div>
-</div>
-
-<div id="watermark"></div>
-<div id="app-page" class="page">
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('solver')">⚗️ SOLVER</button>
-    <button class="nav-tab" onclick="switchTab('theory')">📚 THEORY <span style="font-size:0.56rem;color:var(--cor);margin-left:3px">FREE</span></button>
-  </div>
-
-  <div id="solver-tab">
-    <div class="sec-title">Ask. <em>Solve.</em> Master.</div>
-    <p class="sec-sub">Upload your question — verified solution with diagrams.</p>
-
-    <div class="subj-row">
-      <button class="subj-btn am" data-sub="Maths"    onclick="setSub(this,'m')">📐 Maths</button>
-      <button class="subj-btn"    data-sub="Physics"   onclick="setSub(this,'p')">⚛️ Physics</button>
-      <button class="subj-btn"    data-sub="Chemistry" onclick="setSub(this,'c')">🧪 Chemistry</button>
-    </div>
-
-    <div class="upload-zone" id="drop-zone">
-      <input type="file" id="img-input" accept="image/*" capture="environment" onchange="handleImg(event)" style="display:none">
-      <input type="file" id="img-gallery" accept="image/*" onchange="handleImg(event)" style="display:none">
-      <input type="file" id="pdf-input" accept="application/pdf" onchange="handleImg(event)" style="display:none">
-      
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <button type="button" onclick="event.stopPropagation();document.getElementById('img-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.4);background:rgba(255,106,0,0.1);color:var(--or1);font-size:0.95rem;cursor:pointer">📷 Camera</button>
-        <button type="button" onclick="event.stopPropagation();document.getElementById('img-gallery').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(255,106,0,0.2);background:rgba(255,106,0,0.05);color:var(--text);font-size:0.95rem;cursor:pointer">🖼️ Gallery</button>
-        <button type="button" onclick="event.stopPropagation();document.getElementById('pdf-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid rgba(96,208,128,0.4);background:rgba(96,208,128,0.1);color:var(--cor);font-size:0.95rem;cursor:pointer">📄 PDF</button>
-      </div>
-      <div class="up-sub" style="margin-top:10px">or drag & drop · JPG · PNG · WEBP · PDF</div>
-    </div>
-    
-    <div id="preview-wrap">
-      <img id="preview-img" src="" alt="">
-      <div id="pdf-label" style="display:none; padding:30px 20px; text-align:center; color:var(--cor); font-family:'Syne',sans-serif; background:var(--card2); word-break:break-all; border-radius:8px;"></div>
-      <button class="rm-img" onclick="removeImg()">✕ Remove</button>
-    </div>
-
-    <div class="or-row"><div class="or-line"></div><span>or type your question</span><div class="or-line"></div></div>
-    <textarea class="q-text" id="q-text" placeholder="Type your question here, or add context to the image..."></textarea>
-
-    <div class="mode-row">
-      <button class="mode-btn mh" id="btn-hint"   onclick="setMode('hint')">💡 HINT<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">I'll try first</span></button>
-      <button class="mode-btn"    id="btn-full"   onclick="setMode('full')">📖 FULL SOL<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Step-by-step</span></button>
-      <button class="mode-btn"    id="btn-verify" onclick="setMode('verify')">✅ VERIFY<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Check my work</span></button>
-      <button class="mode-btn ma" id="btn-answers" onclick="setMode('answers')">🎯 ANSWERS<br><span style="font-size:0.62rem;opacity:0.7;font-weight:400">Only final</span></button>
-    </div>
-
-    <div id="verify-box"><label>YOUR ANSWER / WORKING</label><textarea id="student-ans" placeholder="Write your answer or working here..."></textarea></div>
-
-    <button id="solve-btn" onclick="solve()">SOLVE →</button>
-
-    <div id="loader">
-      <div class="atom-wrap">
-        <div class="atom">
-          <div class="nucleus"></div>
-          <div class="orbit o1"><div class="elec e1">M</div></div>
-          <div class="orbit o2"><div class="elec e2">P</div></div>
-          <div class="orbit o3"><div class="elec e3">C</div></div>
-        </div>
-        <div class="solving-txt">Solving<span class="sdot">.</span><span class="sdot">.</span><span class="sdot">.</span></div>
-      </div>
-    </div>
-
-    <div class="result-card" id="result-card">
-      <div class="result-head" id="result-head"></div>
-      <div id="verdict-wrap"></div>
-      <div id="motive-wrap"></div>
-      <div class="result-body" id="result-body"></div>
-      <div class="ai-disclaimer">⚠️ AI-generated responses are for learning assistance only. Always verify with your textbook or teacher before exam use.</div>
-      
-      <div class="post-actions" id="post-actions">
-        <button class="act-btn act-reveal"  id="reveal-btn"  onclick="revealFull()" style="display:none">Show Full Solution →</button>
-        <button class="act-btn act-similar" id="similar-btn" onclick="getSimilar()">🔁 Similar Questions</button>
-        <button class="act-btn act-theory"  onclick="askTheoryFromSolve()">📚 Explain Theory</button>
-        <button class="act-btn act-diagram" id="diagram-btn" onclick="fetchDiagram()">📐 Show Diagram</button>
         
-<button class="act-btn act-pdf" id="pdf-btn" onclick="downloadPDF(this)" style="background:rgba(32,160,96,0.1); color:var(--cor); border-color:var(--cor);">📄 Download PDF</button>        <button class="act-btn act-latex" onclick="downloadLaTeX()" style="background:rgba(192,128,240,0.1); color:var(--verify); border-color:var(--verify);">📝 Download LaTeX</button>
-      </div>
-    </div>
+        <div>
+            <h2 class="font-headline-sm text-on-surface mb-4">Provide Question</h2>
+            
+            <input type="file" id="file-upload" accept="image/*,application/pdf" class="hidden" onchange="handleFile(event)">
+            
+            <div id="dropzone" onclick="document.getElementById('file-upload').click()" class="relative border-2 border-dashed border-primary/60 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-primary/5 transition-all-fluid cursor-pointer hover:border-primary hover:bg-primary/10 shadow-glow-inner mb-4">
+                
+                <div id="file-info" class="hidden items-center gap-6 animate-fade-in-up w-full">
+                    <div class="w-20 h-20 rounded-lg overflow-hidden border border-glass-stroke bg-surface-container-high shrink-0 flex items-center justify-center relative">
+                        <img id="preview-img" class="w-full h-full object-cover hidden" />
+                        <span id="pdf-icon" class="material-symbols-outlined text-primary/70 text-3xl hidden">picture_as_pdf</span>
+                    </div>
+                    <div class="text-left flex-1">
+                        <p id="file-name" class="font-medium text-on-surface truncate max-w-[200px] md:max-w-md">image.jpg</p>
+                        <p class="text-sm text-text-muted mt-1">Tap to replace</p>
+                    </div>
+                    <button onclick="removeFile(event)" class="p-2 bg-surface rounded-full border border-glass-stroke hover:text-error transition-colors">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
 
-    <div id="diagram-wrap" style="display:none;margin:12px 0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,106,0,0.2);background:#fff"><div id="diagram-container" style="width:100%;line-height:0"></div></div>
+                <div id="upload-prompt" class="flex flex-col items-center">
+                    <span class="material-symbols-outlined text-primary/70 text-4xl mb-2">cloud_upload</span>
+                    <p class="font-medium text-on-surface">Upload Image or PDF</p>
+                    <p class="text-sm text-text-muted mt-1">Tap or drag and drop</p>
+                </div>
+            </div>
 
-    <div id="followup-section">
-      <label>ASK A FOLLOW-UP <span class="fu-count" id="fu-count"></span></label>
-      <textarea id="followup-text" placeholder="e.g. 'Why did you use conservation of momentum here?' or 'Explain Step 3'"></textarea>
-      <button id="followup-btn" onclick="sendFollowup()">Ask →</button>
-    </div>
-
-    <div class="similar-card" id="similar-card">
-      <div class="similar-head">🔁 Similar Practice Questions</div>
-      <div class="similar-body" id="similar-body"></div>
-    </div>
-
-    <div class="sub-banner" id="sub-banner">
-      <div class="sub-title">Unlock Full Access</div>
-      <div class="sub-desc">Your free questions are used up. Subscribe to continue.</div>
-      <div class="sub-price">₹299 <span>/ month</span></div>
-      <div class="sub-feats">
-        <div class="sub-feat">12 questions per day</div>
-        <div class="sub-feat">3 follow-ups free</div>
-        <div class="sub-feat">Unlimited theory</div>
-        <div class="sub-feat">Solutions saved forever</div>
-      </div>
-      <button class="pay-btn" onclick="subscribe()">SUBSCRIBE NOW →</button>
-    </div>
-  </div>
-
-  <div id="theory-tab" style="display:none">
-    <div class="sec-title">📚 <em>Theory</em> Library</div>
-    <p class="sec-sub">Always free — search any topic from your JEE syllabus.</p>
-    <div class="theory-search">
-      <input type="text" id="theory-input" placeholder="e.g. 'Newton's Laws', 'Gauss Law', 'Integration by Parts'..." onkeydown="if(event.key==='Enter')getTheory()">
-      <button onclick="getTheory()">EXPLAIN →</button>
-    </div>
-    <div class="topic-chips">
-      <div class="chip" onclick="quickTheory('Newton\\'s Laws of Motion')">Newton's Laws</div>
-      <div class="chip" onclick="quickTheory('Work Energy Theorem')">Work-Energy</div>
-      <div class="chip" onclick="quickTheory('Gauss Law Electrostatics')">Gauss Law</div>
-      <div class="chip" onclick="quickTheory('Faraday\\'s Law of Induction')">Faraday's Law</div>
-      <div class="chip" onclick="quickTheory('Integration by parts calculus')">Integration</div>
-      <div class="chip" onclick="quickTheory('Thermodynamics laws JEE')">Thermodynamics</div>
-      <div class="chip" onclick="quickTheory('Photoelectric effect')">Photoelectric Effect</div>
-      <div class="chip" onclick="quickTheory('Organic reaction mechanisms SN1 SN2')">SN1 vs SN2</div>
-      <div class="chip" onclick="quickTheory('Circular motion centripetal force')">Circular Motion</div>
-      <div class="chip" onclick="quickTheory('Coordination compounds chemistry')">Coordination Compounds</div>
-    </div>
-    <div id="theory-loader">
-      <div class="atom-wrap">
-        <div class="atom">
-          <div class="nucleus"></div>
-          <div class="orbit o1"><div class="elec e1">M</div></div>
-          <div class="orbit o2"><div class="elec e2">P</div></div>
-          <div class="orbit o3"><div class="elec e3">C</div></div>
+            <textarea id="q-text" rows="3" class="w-full bg-surface-container border border-glass-stroke rounded-xl p-4 text-on-surface font-body-md focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors" placeholder="Or type your question/context here..."></textarea>
+            
+            <div id="verify-box" class="hidden mt-4">
+                <label class="text-sm font-label-caps text-tertiary-container mb-2 block">YOUR ANSWER / WORKING</label>
+                <textarea id="student-ans" rows="2" class="w-full bg-surface-container border border-tertiary-container/50 rounded-xl p-4 text-on-surface focus:border-tertiary-container transition-colors" placeholder="Enter your logic or answer to verify..."></textarea>
+            </div>
         </div>
-        <div class="solving-txt">Loading theory<span class="sdot">.</span><span class="sdot">.</span><span class="sdot">.</span></div>
-      </div>
+
+        <div>
+            <h2 class="font-headline-sm text-on-surface mb-4">Solve Mode</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="mode-container">
+                <button onclick="setMode('hint', this)" class="mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-glass-stroke bg-surface-container text-on-surface-variant transition-all-fluid hover:border-primary/50 hover:bg-surface-container-high gap-2">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                    <span class="font-medium text-sm">Hint Only</span>
+                </button>
+                <button onclick="setMode('full', this)" class="mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-primary bg-primary/10 text-primary transition-all-fluid shadow-glow-md gap-2">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <span class="font-medium text-sm">Full Sol</span>
+                </button>
+                <button onclick="setMode('verify', this)" class="mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-glass-stroke bg-surface-container text-on-surface-variant transition-all-fluid hover:border-primary/50 hover:bg-surface-container-high gap-2">
+                    <span class="material-symbols-outlined">fact_check</span>
+                    <span class="font-medium text-sm">Verify Me</span>
+                </button>
+                <button onclick="setMode('answers', this)" class="mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-glass-stroke bg-surface-container text-on-surface-variant transition-all-fluid hover:border-primary/50 hover:bg-surface-container-high gap-2">
+                    <span class="material-symbols-outlined">done_all</span>
+                    <span class="font-medium text-sm">Answers</span>
+                </button>
+            </div>
+        </div>
+
+        <button id="solve-btn" onclick="executeSolve()" class="w-full py-4 rounded-xl bg-primary text-on-primary font-bold text-lg transition-all-fluid shadow-glow-lg hover:bg-white hover:text-primary flex items-center justify-center gap-2 border border-primary/80">
+            <span class="material-symbols-outlined">bolt</span> Solve Now
+        </button>
+    </section>
+
+    <div id="loader" class="hidden flex-col items-center justify-center py-20 space-y-6 transition-opacity duration-700">
+        <div class="relative w-24 h-24">
+            <div class="absolute inset-0 border-2 border-primary/30 rounded-full animate-spin-slow shadow-glow-sm"></div>
+            <div class="absolute inset-0 border-t-2 border-primary rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
+            <div class="absolute inset-2 border-2 border-secondary/30 rounded-full animate-spin-slow" style="animation-direction: reverse;"></div>
+            <div class="absolute inset-2 border-b-2 border-secondary rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-3xl animate-pulse-glow">model_training</span>
+            </div>
+        </div>
+        <p class="font-body-lg text-primary animate-pulse shadow-glow-sm">Analyzing problem...</p>
     </div>
-    <div class="theory-card" id="theory-card">
-      <div class="theory-head" id="theory-head">📚 Theory</div>
-      <div class="theory-body" id="theory-body"></div>
-    </div>
-  </div>
-</div>
 
-<div class="kw-overlay" id="kw-overlay" onclick="closePopup()"></div>
-<div class="kw-popup" id="kw-popup">
-  <button class="kw-close" onclick="closePopup()">✕</button>
-  <div class="kw-title" id="kw-title"></div>
-  <div class="kw-body" id="kw-body"></div>
-</div>
+    <section id="result-card" class="hidden bg-surface-container border border-glass-stroke shadow-glow-sm rounded-2xl overflow-hidden transition-all-fluid animate-fade-in-up">
+        
+        <div class="bg-surface-container-high p-6 border-b border-glass-stroke flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-glow-sm">
+                    <span class="material-symbols-outlined">check</span>
+                </div>
+                <div>
+                    <h3 class="font-headline-sm text-on-surface">Solution Generated</h3>
+                    <p id="result-meta" class="text-sm text-on-surface-variant">Physics • Full Solution</p>
+                </div>
+            </div>
+            <button onclick="downloadPDF(this)" class="p-2 rounded-lg bg-surface hover:bg-surface-bright transition-all-fluid border border-glass-stroke hover:border-primary/50 text-on-surface-variant hover:text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span>
+                <span class="text-sm font-medium hidden sm:inline">Export PDF</span>
+            </button>
+        </div>
+        
+        <div class="p-6 md:p-8 space-y-6">
+            <div id="result-body" class="text-on-surface font-body-md leading-relaxed animate-fade-in-up delay-100">
+                </div>
+            
+            <div class="mt-8 pt-6 border-t border-glass-stroke flex gap-3">
+                <button onclick="fetchDiagram()" id="diagram-btn" class="px-4 py-2 rounded-lg border border-glass-stroke bg-surface hover:border-primary/50 hover:text-primary transition-colors text-sm font-medium flex items-center gap-2 text-on-surface-variant">
+                    <span class="material-symbols-outlined text-sm">architecture</span> Show Diagram
+                </button>
+            </div>
 
-<button id="dm-toggle" onclick="toggleDM()" title="Toggle theme">
-  <span class="icon-sun">☀️</span>
-  <span class="icon-moon">🌙</span>
-</button>
+            <div id="diagram-wrap" class="hidden mt-4 p-4 bg-surface rounded-xl border border-glass-stroke overflow-x-auto text-center">
+                <div id="diagram-container"></div>
+            </div>
+        </div>
+    </section>
+</main>
 
-<div class="asphyc-footer">Made with ❤️ by Team ASPHYC</div>
-
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-// ==========================================
-// ⚠️ MANDATORY: INSERT YOUR SUPABASE KEYS ⚠️
-// ==========================================
-const SUPABASE_URL = 'https://druwtgfbjebcwgbhgjci.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRydXd0Z2ZiamViY3dnYmhnamNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDkzMDAsImV4cCI6MjA5MjE4NTMwMH0.1pmrXsJkUgd4DJFszABP114f6aZba25b1T1anfyjgwI';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ==========================================
+    // ⚠️ MANDATORY: INSERT YOUR SUPABASE KEYS ⚠️
+    // ==========================================
+    const SUPABASE_URL = 'https://druwtgfbjebcwgbhgjci.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRydXd0Z2ZiamViY3dnYmhnamNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDkzMDAsImV4cCI6MjA5MjE4NTMwMH0.1pmrXsJkUgd4DJFszABP114f6aZba25b1T1anfyjgwI';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const API = 'https://anish-ai-theta.vercel.app'; 
 
-const API = 'https://anish-ai-theta.vercel.app'; // Your Vercel API
+    // Configure Marked.js exactly as the backend PDF does
+    marked.setOptions({ breaks: true, gfm: true });
 
-let session = null;
-let userId = null;
-let userPhone = null;
+    let session = null;
+    let currentSub = 'Physics';
+    let currentMode = 'full';
+    let imageBase64 = null;
+    let imageType = null;
+    let sessionId = null;
+    let lastRawSolution = "";
 
-let currentSub = 'Maths', currentMode = 'hint';
-let imageBase64 = null, imageType = null;
-let sessionId = null, followupCount = 0, isPaid = false;
-let savedQ = {};
-
-// GLOBAL VARIABLE FOR PUBLISHING PIPELINE
-let lastRawSolution = "";
-
-// ── DARK MODE ──
-function toggleDM() {
-    const isLight = document.body.classList.toggle('light-mode');
-    localStorage.setItem('jee-theme', isLight ? 'light' : 'dark');
-}
-if (localStorage.getItem('jee-theme') === 'light') {
-    document.body.classList.add('light-mode');
-}
-
-// ── WATERMARK ──
-function initWatermark(phone) {
-    const wm = document.getElementById('watermark');
-    if (!wm || !phone) return;
-    const text = phone + ' · ANISH.AI';
-    let html = '';
-    for (let i = 0; i < 120; i++) html += '<span class="wm-text">' + text + '</span>';
-    wm.innerHTML = html;
-}
-
-// ── SPLASH & INIT NATIVE AUTH ──
-window.onload = async () => {
-  setTimeout(async () => {
-    const sp = document.getElementById('splash');
-    sp.classList.add('splash-hide');
-    setTimeout(() => { sp.style.display = 'none'; }, 800);
-    
-    try {
-      const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
-      session = currentSession;
-
-      if (session) {
-        userId = session.user.id;
-        userPhone = session.user.phone;
-        showApp();
-      } else {
-        showPage('welcome-page');
-      }
-    } catch (err) {
-      console.error("Supabase init error:", err);
-      showPage('welcome-page');
-    }
-  }, 3500);
-};
-
-// ── PAGES ──
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-  const el = document.getElementById(id);
-  el.style.display = (id === 'app-page') ? 'block' : 'flex';
-  el.classList.add('active');
-}
-
-function showLogin() { showPage('login-page'); }
-async function showPhoneStep() { document.getElementById('phone-step').style.display='block'; document.getElementById('otp-step').style.display='none'; setMsg(''); }
-function setMsg(m, c='var(--muted)') { const e=document.getElementById('login-msg'); e.textContent=m; e.style.color=c; }
-
-// ── NATIVE SUPABASE OTP FLOW ──
-async function sendOTP() {
-  let phone = document.getElementById('phone-input').value.trim();
-  if(!/^[6-9]\d{9}$/.test(phone)) { setMsg('Valid 10-digit number please.','var(--err)'); return; }
-  
-  phone = '+91' + phone; 
-  setMsg('Sending OTP…');
-
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithOtp({ phone: phone });
-
-    if (error) {
-      setMsg(error.message, 'var(--err)');
-    } else {
-      document.getElementById('phone-step').style.display = 'none';
-      document.getElementById('otp-step').style.display = 'block';
-      setMsg('OTP sent!', 'var(--cor)');
-    }
-  } catch (err) {
-    if (err.message === 'Failed to fetch') {
-      setMsg('Network Error. Did you insert your actual Supabase URL?', 'var(--err)');
-    } else {
-      setMsg('An error occurred.', 'var(--err)');
-    }
-  }
-}
-
-async function verifyOTP() {
-  let phone = document.getElementById('phone-input').value.trim();
-  phone = '+91' + phone;
-  const otp = document.getElementById('otp-input').value.trim();
-  
-  if (otp.length !== 6) { setMsg('Enter 6-digit OTP', 'var(--err)'); return; }
-  setMsg('Verifying…');
-
-  try {
-    const { data, error } = await supabaseClient.auth.verifyOtp({ phone: phone, token: otp, type: 'sms' });
-
-    if (error) {
-      setMsg(error.message, 'var(--err)');
-    } else {
-      session = data.session;
-      userId = data.user.id;
-      userPhone = data.user.phone;
-      showApp();
-    }
-  } catch (err) {
-    if (err.message === 'Failed to fetch') {
-      setMsg('Network Error. Did you insert your actual Supabase URL?', 'var(--err)');
-    } else {
-      setMsg('An error occurred.', 'var(--err)');
-    }
-  }
-}
-
-async function logout() {
-  await supabaseClient.auth.signOut();
-  session = null;
-  userId = null;
-  userPhone = null;
-  document.getElementById('main-header').style.display = 'none';
-  showPage('welcome-page');
-}
-
-// ── APP START ──
-async function showApp() {
-  showPage('app-page');
-  document.getElementById('main-header').style.display = 'flex';
-  if (userPhone) document.getElementById('user-phone').textContent = '📱 ' + userPhone.replace('+91', '');
-  await refreshStatus();
-}
-
-async function refreshStatus() {
-  try {
-    const r = await apiFetch('/api/status?app=jee', null, true, 'GET');
-    isPaid = r.isPaid;
-    const qd = document.getElementById('quota-display');
-    if (!r.isPaid) {
-      const l = Math.max(0, r.freeLimit - r.freeUsed);
-      qd.textContent = `${l} free left`;
-      qd.className = 'quota-pill' + (l <= 1 ? ' low' : '');
-    } else {
-      const l = Math.max(0, r.dailyLimit - r.dailyUsed);
-      qd.textContent = `${l}/12 today`;
-      qd.className = 'quota-pill paid' + (l <= 2 ? ' low' : '');
-    }
-  } catch (e) {
-    console.error("Status check failed:", e);
-  }
-}
-
-// ── TABS ──
-function switchTab(tab){
-  document.querySelectorAll('.nav-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='solver')||(i===1&&tab==='theory')));
-  document.getElementById('solver-tab').style.display=tab==='solver'?'block':'none';
-  document.getElementById('theory-tab').style.display=tab==='theory'?'block':'none';
-}
-
-// ── SUBJECT / MODE ──
-function setSub(el,cls){document.querySelectorAll('.subj-btn').forEach(b=>b.className='subj-btn');el.classList.add('a'+cls);currentSub=el.dataset.sub;}
-
-function setMode(mode){
-  currentMode=mode;const map={hint:'mh',full:'mf',verify:'mv',answers:'ma'};
-  ['hint','full','verify','answers'].forEach(m=>{document.getElementById('btn-'+m).className='mode-btn'+(mode===m?' '+map[m]:'');});
-  document.getElementById('verify-box').style.display=mode==='verify'?'block':'none';
-}
-
-// ── IMAGE & PDF HANDLING ──
-function handleImg(e){if(e.target.files[0])loadImg(e.target.files[0]);}
-
-function loadImg(file){
-  if (file.size > 3.5 * 1024 * 1024) {
-      alert('File is too large. Please upload a file smaller than 3.5MB.');
-      return;
-  }
-
-  const r = new FileReader();
-  r.onload = ev => {
-    imageBase64 = ev.target.result.split(',')[1];
-    imageType = file.type || 'image/jpeg';
-    
-    document.getElementById('preview-wrap').style.display = 'block';
-    
-    if (imageType === 'application/pdf') {
-      document.getElementById('preview-img').style.display = 'none';
-      document.getElementById('pdf-label').style.display = 'block';
-      document.getElementById('pdf-label').innerHTML = `📄 <b>PDF Uploaded:</b><br><br>${file.name}<br><span style="font-size:0.7rem;color:var(--muted)">Gemini will read all pages and extract the questions.</span>`;
-    } else {
-      document.getElementById('preview-img').style.display = 'block';
-      document.getElementById('pdf-label').style.display = 'none';
-      document.getElementById('preview-img').src = ev.target.result;
-    }
-  };
-  r.readAsDataURL(file);
-}
-
-function removeImg(){
-  imageBase64 = null; 
-  imageType = null;
-  document.getElementById('preview-wrap').style.display = 'none';
-  document.getElementById('preview-img').src = '';
-  document.getElementById('img-input').value = '';
-  document.getElementById('img-gallery').value = '';
-  document.getElementById('pdf-input').value = '';
-}
-
-const dz=document.getElementById('drop-zone');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&(f.type.startsWith('image/')||f.type==='application/pdf'))loadImg(f);});
-
-// ── SOLVE ──
-async function solve(){
-  const extraText=document.getElementById('q-text').value.trim();
-  const studentAnswer=document.getElementById('student-ans').value.trim();
-  if(!imageBase64&&!extraText){alert('Please upload an image/PDF or type your question.');return;}
-  if(currentMode==='verify'&&!studentAnswer){alert('Please enter your answer to verify.');return;}
-  
-  ['result-card','post-actions','similar-card','followup-section','sub-banner'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById('verdict-wrap').innerHTML='';document.getElementById('motive-wrap').innerHTML='';
-  document.getElementById('loader').style.display='block';document.getElementById('solve-btn').disabled=true;
-  
-  savedQ={subject:currentSub,extraText,imageBase64,imageType};
-  
-  try{
-    const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:currentMode,imageBase64,imageType,extraText,studentAnswer,sessionId:null});
-    sessionId=r.sessionId;followupCount=0;showResult(r.answer,currentMode,currentSub);await refreshStatus();
-  }catch(err){
-    if(err.code==='free_exhausted'||err.code==='daily_exhausted'){document.getElementById('sub-banner').style.display='block';document.getElementById('sub-banner').scrollIntoView({behavior:'smooth'});}
-    else alert('Error: '+(err.message||'Something went wrong.'));
-  }
-  document.getElementById('loader').style.display='none';document.getElementById('solve-btn').disabled=false;
-}
-
-// ── SHOW RESULT ──
-function showResult(text,mode,subject){
-  lastRawSolution = text;
-
-  const sc={Maths:'var(--or1)',Physics:'#40c0f0',Chemistry:'var(--or3)'}[subject]||'var(--or1)';
-  const ml={hint:'HINT',full:'FULL SOLUTION',verify:'VERIFY',answers:'ANSWERS ONLY'}[mode];
-  const mc={hint:'var(--hint)',full:'var(--or1)',verify:'var(--verify)',answers:'var(--cor)'}[mode];
-  document.getElementById('result-head').innerHTML=`<span class="tag" style="color:${sc}">${subject.toUpperCase()}</span><span class="tag" style="color:${mc}">${ml}</span>`;
-
-  if(mode==='verify'){
-    const lc=text.toLowerCase();
-    let vcls,icon,vlabel,mcls,note;
-    if(lc.includes('✅ correct')||lc.includes('✅correct')){
-      vcls='v-ok';icon='✅';vlabel='CORRECT!';mcls='correct';
-      note=`🎉 Brilliant! You got it perfectly! Every step was spot on. Your understanding of <b>${subject}</b> is strong. Keep this confidence going into your exam — you're ready! 🌟`;
-    }else if(lc.includes('❌')||lc.includes('incorrect')||lc.includes('wrong')){
-      vcls='v-bad';icon='❌';vlabel='NEEDS CORRECTION';mcls='wrong';
-      note=`💪 Almost there — don't give up! Making mistakes is how toppers are made. Every JEE rank holder has been exactly where you are right now. Look at the correction below, understand it, try again — you WILL get it.`;
-    }else{
-      vcls='v-mid';icon='⚠️';vlabel='PARTIALLY CORRECT';mcls='partial';
-      note=`👏 Great effort — you're on the right track! You understood the concept correctly — that's the hardest part. Just a small error in execution. Fix that one step and you're there!`;
-    }
-    document.getElementById('verdict-wrap').innerHTML=`<div class="verdict ${vcls}">${icon} ${vlabel}</div>`;
-    document.getElementById('motive-wrap').innerHTML=`<div class="motive-note ${mcls}">${note}<div class="motive-sig">— Anish Sir 🎯</div></div>`;
-  }
-
-  document.getElementById('result-body').innerHTML=formatText(text);
-  document.getElementById('result-card').style.display='block';
-  document.getElementById('post-actions').style.display='flex';
-  document.getElementById('reveal-btn').style.display=mode==='hint'?'inline-block':'none';
-  if(sessionId){document.getElementById('followup-section').style.display='block';updateFU();}
-
-  setTimeout(()=>{
-    if(window.renderMathInElement){
-      renderMathInElement(document.getElementById('result-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});
-    }
-  },100);
-
-  document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-// ── FORMAT TEXT ──
-function formatText(raw){
-  raw = raw.replace(/\*\*\*(.+?)\*\*\*/g, '|||BI:$1|||');
-  raw = raw.replace(/\*\*(.+?)\*\*/g, '|||B:$1|||');
-  raw = raw.replace(/\*([^\s\*][^\n\*]*?)\*/g, '|||I:$1|||');
-
-  const keywords={
-    'Conservation of Momentum':{formula:'m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂',def:'Total momentum of a system stays constant when no external force acts on it.',exam:'JEE: Collision problems, rocket propulsion, explosions'},
-    'Newton\'s Second Law':{formula:'F = ma',def:'Force equals mass times acceleration. The rate of change of momentum equals the applied force.',exam:'JEE: Almost every mechanics problem'},
-    'Conservation of Energy':{formula:'KE + PE = constant',def:'Total energy of an isolated system remains constant — energy can neither be created nor destroyed.',exam:'JEE: Projectile, circular motion, SHM'},
-    'Gauss Law':{formula:'∮E·dA = Q/ε₀',def:'Total electric flux through a closed surface equals the enclosed charge divided by ε₀.',exam:'JEE: Symmetric charge distributions'},
-    'Integration by Parts':{formula:'∫u dv = uv − ∫v du',def:'A technique to integrate products of functions by choosing u and dv strategically.',exam:'JEE: ∫xeˣ, ∫x·sin(x), ∫ln(x)'},
-    'Faraday\'s Law':{formula:'EMF = −dΦ/dt',def:'The induced EMF in a circuit equals the negative rate of change of magnetic flux.',exam:'JEE: Electromagnetic induction problems'},
-    'Le Chatelier\'s Principle':{formula:'',def:'If a system at equilibrium is disturbed, it shifts to counteract the disturbance and restore equilibrium.',exam:'JEE/NEET: Chemical equilibrium questions'},
-    'Krebs Cycle':{formula:'',def:'A series of chemical reactions in the mitochondria that produces NADH, FADH₂ and ATP from Acetyl CoA.',exam:'NEET: 2-3 questions guaranteed every year'},
-    'SHM':{formula:'x = A·sin(ωt + φ)',def:'Simple Harmonic Motion — a periodic motion where restoring force is proportional to displacement.',exam:'JEE: Springs, pendulums, LC circuits'},
-  };
-
-  let html = '';
-  const lines = raw.split('\n');
-
-  for (let i = 0; i < lines.length; i++) {
-    let t = lines[i].trim();
-    if (!t) { html += '<br>'; continue; }
-
-    if (/^###\s+(.+)/.test(t)) {
-      html += `<h3 style="margin-top:14px; color:var(--or1); font-family:'Syne',sans-serif;">${esc(t.replace(/^###\s+/, ''))}</h3>`;
-      continue;
-    }
-    if (/^##\s+(.+)/.test(t)) {
-      html += `<h2 style="margin-top:16px; color:var(--text); font-family:'Syne',sans-serif; font-size:1.1rem;">${esc(t.replace(/^##\s+/, ''))}</h2>`;
-      continue;
-    }
-    if (/^#\s+(.+)/.test(t)) {
-      html += `<h2 style="margin-top:18px; color:var(--text); font-family:'Syne',sans-serif; font-size:1.3rem;">${esc(t.replace(/^#\s+/, ''))}</h2>`;
-      continue;
+    // ── UI STATE MANAGEMENT ──
+    function setSub(sub, btnElement) {
+        currentSub = sub;
+        document.querySelectorAll('.subj-btn').forEach(btn => {
+            btn.className = "subj-btn px-5 py-2.5 rounded-full border border-glass-stroke text-on-surface-variant bg-surface-container hover:border-primary/50 hover:bg-surface-container-high transition-all-fluid";
+        });
+        btnElement.className = "subj-btn px-5 py-2.5 rounded-full border border-primary text-primary bg-primary/10 font-medium transition-all-fluid shadow-glow-md";
     }
 
-    if (/^[\*\-]\s+(.+)/.test(t)) {
-      html += `<div style="margin-left: 18px; display: list-item; list-style-type: disc; color: inherit;">${esc(t.replace(/^[\*\-]\s+/, ''))}</div>`;
-      continue;
+    function setMode(mode, btnElement) {
+        currentMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.className = "mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-glass-stroke bg-surface-container text-on-surface-variant transition-all-fluid hover:border-primary/50 hover:bg-surface-container-high gap-2";
+        });
+        btnElement.className = "mode-btn flex flex-col items-center justify-center p-4 rounded-xl border border-primary bg-primary/10 text-primary transition-all-fluid shadow-glow-md gap-2";
+        
+        const verifyBox = document.getElementById('verify-box');
+        if (mode === 'verify') verifyBox.classList.remove('hidden');
+        else verifyBox.classList.add('hidden');
     }
 
-    if (/^(step\s*\d+|★|✅|❌|⚠️|✦)/i.test(t) || /^\|\|\|B:(step|concept|given|verify|self\.check)/i.test(t)) {
-      html += `<h3>${esc(t)}</h3>`;
-      continue;
+    // ── FILE HANDLING ──
+    function handleFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 3.5 * 1024 * 1024) {
+            alert('File is too large. Limit is 3.5MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imageBase64 = e.target.result.split(',')[1];
+            imageType = file.type || 'image/jpeg';
+            
+            document.getElementById('upload-prompt').classList.add('hidden');
+            document.getElementById('file-info').classList.remove('hidden');
+            document.getElementById('file-info').classList.add('flex');
+            document.getElementById('file-name').innerText = file.name;
+
+            if (imageType === 'application/pdf') {
+                document.getElementById('preview-img').classList.add('hidden');
+                document.getElementById('pdf-icon').classList.remove('hidden');
+            } else {
+                document.getElementById('pdf-icon').classList.add('hidden');
+                document.getElementById('preview-img').classList.remove('hidden');
+                document.getElementById('preview-img').src = e.target.result;
+            }
+        };
+        reader.readAsDataURL(file);
     }
 
-    const wordCount = t.split(/\s+/).length;
-    const hasMathSymbol = /[=∫∑√π±≤≥≠∞^÷×→]/.test(t);
-    const looksLikeSentence = /^[A-Z]/.test(t) && wordCount > 5; 
-
-    if (hasMathSymbol && !looksLikeSentence && t.length < 150) {
-      html += `<span class="math-line">${esc(t)}</span>`;
-    } else {
-      let processed = esc(t);
-      Object.keys(keywords).forEach(kw => {
-        const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        processed = processed.replace(re, `<span class="kw" onclick="showPopup('${kw.replace(/'/g, "\\'")}', '${keywords[kw].def.replace(/'/g, "\\'")}', '${keywords[kw].formula.replace(/'/g, "\\'")}', '${keywords[kw].exam.replace(/'/g, "\\'")}')">$&</span>`);
-      });
-      html += `<span>${processed}</span>\n`;
-    }
-  }
-
-  html = html.replace(/\|\|\|BI:([\s\S]+?)\|\|\|/g, '<strong><em>$1</em></strong>');
-  html = html.replace(/\|\|\|B:([\s\S]+?)\|\|\|/g, '<strong>$1</strong>');
-  html = html.replace(/\|\|\|I:([\s\S]+?)\|\|\|/g, '<em>$1</em>');
-  return html;
-}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-// ── KEYWORD POPUP ──
-function showPopup(term,def,formula,exam){
-  document.getElementById('kw-title').textContent=term;
-  let body=`<b>What it is:</b><br>${def}`;
-  if(formula)body+=`<br><br><b>Formula:</b><span class="kw-formula">${formula}</span>`;
-  if(exam)body+=`<br><b>JEE/NEET:</b><br>${exam}`;
-  document.getElementById('kw-body').innerHTML=body;
-  const popup=document.getElementById('kw-popup');
-  popup.style.top='50%';popup.style.left='50%';popup.style.transform='translate(-50%,-50%)';
-  popup.classList.add('show');document.getElementById('kw-overlay').classList.add('show');
-}
-async function closePopup(){document.getElementById('kw-popup').classList.remove('show');document.getElementById('kw-overlay').classList.remove('show');}
-
-// ── REVEAL FULL ──
-async function revealFull(){
-  document.getElementById('reveal-btn').style.display='none';
-  document.getElementById('loader').style.display='block';document.getElementById('solve-btn').disabled=true;
-  try{const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:'full',imageBase64,imageType,extraText:document.getElementById('q-text').value.trim(),sessionId});showResult(r.answer,'full',currentSub);}
-  catch(e){alert('Error: '+e.message);}
-  document.getElementById('loader').style.display='none';document.getElementById('solve-btn').disabled=false;
-}
-
-// ── FOLLOW-UP ──
-function updateFU(){document.getElementById('fu-count').textContent=`${followupCount}/3 used`;document.getElementById('followup-btn').disabled=followupCount>=3;if(followupCount>=3)document.getElementById('followup-text').placeholder='Max 3 follow-ups reached. Ask a new question.';}
-async function sendFollowup(){
-  const text=document.getElementById('followup-text').value.trim();
-  if(!text||followupCount>=3)return;
-  document.getElementById('followup-btn').disabled=true;document.getElementById('loader').style.display='block';
-  try{const r=await apiFetch('/api/solve',{app:'jee',subject:currentSub,mode:'full',imageBase64,imageType,extraText:'FOLLOW-UP: '+text,sessionId});followupCount++;updateFU();document.getElementById('followup-text').value='';showResult(r.answer,'full',currentSub);}
-  catch(err){if(err.code==='followup_exhausted')alert('Max 3 follow-ups reached.');else alert('Error: '+err.message);}
-  document.getElementById('loader').style.display='none';document.getElementById('followup-btn').disabled=false;
-}
-
-// ── FETCH DIAGRAM ──
-async function fetchDiagram() {
-    const btn = document.getElementById('diagram-btn');
-    const wrap = document.getElementById('diagram-wrap');
-    const container = document.getElementById('diagram-container');
-    btn.textContent = '⏳ Generating...';
-    btn.disabled = true;
-    try {
-      const solution = document.getElementById('result-body').innerText || '';
-      const r = await fetch(API + '/api/diagram', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (session ? session.access_token : '') },
-        body: JSON.stringify({ subject: currentSub, question: savedQ.extraText || '', solution: solution, sessionId: sessionId })
-      });
-      const d = await r.json();
-      if (d.phone) initWatermark(d.phone);
-      if (d.svg && d.svg.length > 50) {
-        container.innerHTML = d.svg;
-        const svgEl = container.querySelector('svg');
-        if (svgEl) { svgEl.style.width = '100%'; svgEl.style.height = 'auto'; }
-        wrap.style.display = 'block';
-        btn.textContent = '📐 Diagram ✓';
-      } else {
-        btn.textContent = '📐 No diagram';
-      }
-    } catch(e) {
-      btn.textContent = '📐 Failed – retry';
-    }
-    btn.disabled = false;
-}
-
-// ── SIMILAR ──
-async function getSimilar(){
-  document.getElementById('similar-card').style.display='none';document.getElementById('loader').style.display='block';document.getElementById('similar-btn').disabled=true;
-  try{
-    const r=await apiFetch('/api/similar',{app:'jee',subject:currentSub,imageBase64,imageType,extraText:document.getElementById('q-text').value.trim()});
-    const lines=r.questions.split('\n').map(l=>l.trim()).filter(Boolean);
-    let qs=[],cur='';
-    for(const l of lines){if(/^\d+[\.\)]\s/.test(l)){if(cur)qs.push(cur.trim());cur=l.replace(/^\d+[\.\)]\s*/,'');}else cur+=' '+l;}
-    if(cur)qs.push(cur.trim());if(!qs.length)qs=[r.questions];
-    document.getElementById('similar-body').innerHTML=qs.slice(0,4).map(q=>{
-      const parts=q.split(/★\s*Answer:|Answer:/i);
-      const qText=parts[0].trim();const ans=parts[1]?parts[1].trim():'';
-      return `<div class="q-item">${esc(qText)}${ans?`<div class="q-answer"><b>★ Answer:</b> ${esc(ans)}</div>`:''}</div>`;
-    }).join('');
-    document.getElementById('similar-card').style.display='block';document.getElementById('similar-card').scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(e){alert('Error.');}
-  document.getElementById('loader').style.display='none';document.getElementById('similar-btn').disabled=false;
-}
-
-// ── THEORY ──
-async function askTheoryFromSolve(){switchTab('theory');document.getElementById('theory-input').focus();}
-async function getTheory(){const topic=document.getElementById('theory-input').value.trim();if(!topic){alert('Please enter a topic.');return;}await fetchTheory(topic);}
-async function quickTheory(topic){document.getElementById('theory-input').value=topic;await fetchTheory(topic);}
-async function fetchTheory(topic){
-  document.getElementById('theory-card').style.display='none';document.getElementById('theory-loader').style.display='block';
-  try{
-    const r=await apiFetch('/api/theory',{app:'jee',subject:currentSub,topic});
-    document.getElementById('theory-head').textContent='📚 '+topic;
-    document.getElementById('theory-body').innerHTML=formatText(r.theory);
-    document.getElementById('theory-card').style.display='block';
-    setTimeout(()=>{if(window.renderMathInElement)renderMathInElement(document.getElementById('theory-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});},100);
-    document.getElementById('theory-card').scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(e){alert('Error fetching theory.');}
-  document.getElementById('theory-loader').style.display='none';
-}
-
-// ── SUBSCRIBE ──
-async function subscribe(){
-  try{
-    const r=await apiFetch('/api/subscribe',{app:'jee',phone:userPhone});
-    const rzp=new Razorpay({key:r.razorpayKeyId,subscription_id:r.subscriptionId,name:'ANISH.AI JEE',description:'12 questions/day · ₹299/month',prefill:{contact:userPhone},theme:{color:'#ff6a00'},handler:async()=>{await refreshStatus();alert('✅ Subscribed! 12 questions/day unlocked. Resets at 5:00 AM daily.');document.getElementById('sub-banner').style.display='none';}});
-    rzp.open();
-  }catch(e){alert('Payment error. Try again.');}
-}
-
-// ── API HELPER (with automatic token refresh) ──
-async function apiFetch(path, body, auth = true, method = 'POST') {
-  const headers = { 'Content-Type': 'application/json' };
-
-  // Refresh session before every auth call so token never expires mid-use
-  if (auth) {
-    try {
-      const { data: { session: freshSession } } = await supabaseClient.auth.getSession();
-      if (freshSession) {
-        session = freshSession;   // update global session
-      }
-    } catch (e) {
-      // if refresh fails, we continue and let the request fail naturally with 401
+    function removeFile(event) {
+        event.stopPropagation();
+        imageBase64 = null;
+        imageType = null;
+        document.getElementById('file-upload').value = '';
+        document.getElementById('file-info').classList.add('hidden');
+        document.getElementById('file-info').classList.remove('flex');
+        document.getElementById('upload-prompt').classList.remove('hidden');
     }
 
-    if (session) {
-      headers['Authorization'] = 'Bearer ' + session.access_token;
+    // ── API & SOLVE LOGIC ──
+    async function apiFetch(path, body, method = 'POST') {
+        const headers = { 'Content-Type': 'application/json' };
+        // If you implement login later, attach Bearer token here
+        if (session) headers['Authorization'] = 'Bearer ' + session.access_token;
+        const opts = { method, headers };
+        if (method !== 'GET' && body) opts.body = JSON.stringify(body);
+        const res = await fetch(API + path, opts);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.error || 'Failed');
+        return data;
     }
-  }
 
-  const opts = { method, headers };
-  if (method !== 'GET' && body) opts.body = JSON.stringify(body);
+    async function executeSolve() {
+        const extraText = document.getElementById('q-text').value.trim();
+        const studentAnswer = document.getElementById('student-ans').value.trim();
+        
+        if (!imageBase64 && !extraText) {
+            alert('Please upload an image/PDF or type your question.');
+            return;
+        }
+        if (currentMode === 'verify' && !studentAnswer) {
+            alert('Please enter your logic to verify.');
+            return;
+        }
 
-  const res = await fetch(API + path, opts);
-  const data = await res.json();
+        // UI State: Loading
+        document.getElementById('result-card').classList.add('hidden');
+        document.getElementById('diagram-wrap').classList.add('hidden');
+        document.getElementById('loader').classList.remove('hidden');
+        document.getElementById('loader').classList.add('flex');
+        document.getElementById('solve-btn').disabled = true;
+        document.getElementById('solve-btn').classList.add('opacity-50');
 
-  if (res.status === 401) {
-    await logout();
-    throw new Error('Session expired');
-  }
+        try {
+            const r = await apiFetch('/api/solve', {
+                app: 'jee',
+                subject: currentSub,
+                mode: currentMode,
+                imageBase64,
+                imageType,
+                extraText,
+                studentAnswer,
+                sessionId: null
+            });
+            
+            sessionId = r.sessionId;
+            lastRawSolution = r.answer;
+            
+            // Set Meta Title
+            document.getElementById('result-meta').innerText = `${currentSub} • ${currentMode.toUpperCase()}`;
+            
+            // Render Markdown using Marked.js (Matches Backend PDF exactly)
+            const contentDiv = document.getElementById('result-body');
+            let html = marked.parse(r.answer);
+            // Unwrap <p> around display math to fix spacing
+            html = html.replace(/<p>\s*(\$\$[\s\S]*?\$\$)\s*<\/p>/g, '$1');
+            html = html.replace(/<p>\s*(\\\[[\s\S]*?\\\])\s*<\/p>/g, '$1');
+            
+            contentDiv.innerHTML = html;
+            
+            // Render KaTeX
+            renderMathInElement(contentDiv, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            });
 
-  if (!res.ok) {
-    const err = new Error(data.message || data.error || 'Failed');
-    err.code = data.error;
-    throw err;
-  }
-
-  return data;
-}
-
-// ── PDF DOWNLOAD (uses apiFetch, so token is fresh) ──
-async function downloadPDF(buttonElement) {
-  let originalText = "📄 Download PDF";
-  if (buttonElement) {
-    originalText = buttonElement.innerText;
-    buttonElement.innerText = "Generating (~8s)...";
-    buttonElement.disabled = true;
-  }
-  try {
-    const r = await apiFetch('/api/pdf', {
-      text: lastRawSolution,
-      imageBase64: imageBase64,
-      imageType: imageType,
-      svgDiagram: document.getElementById('diagram-container')?.innerHTML || null
-    });
-    if (r.pdfUrl) {
-      window.open(r.pdfUrl, '_blank');
-    } else {
-      throw new Error('PDF URL missing');
+            // UI State: Done
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('loader').classList.remove('flex');
+            document.getElementById('result-card').classList.remove('hidden');
+            document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+        } catch (err) {
+            alert('Error: ' + err.message);
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('loader').classList.remove('flex');
+        } finally {
+            document.getElementById('solve-btn').disabled = false;
+            document.getElementById('solve-btn').classList.remove('opacity-50');
+        }
     }
-  } catch (err) {
-    alert('PDF Error: ' + err.message);
-  } finally {
-    if (buttonElement) {
-      buttonElement.innerText = originalText;
-      buttonElement.disabled = false;
+
+    async function fetchDiagram() {
+        const btn = document.getElementById('diagram-btn');
+        const wrap = document.getElementById('diagram-wrap');
+        const container = document.getElementById('diagram-container');
+        
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Generating...';
+        btn.disabled = true;
+        
+        try {
+            const r = await apiFetch('/api/diagram', {
+                subject: currentSub,
+                question: document.getElementById('q-text').value || 'Image upload',
+                solution: lastRawSolution,
+                sessionId: sessionId
+            });
+            
+            if (r.svg && r.svg.length > 50) {
+                container.innerHTML = r.svg;
+                wrap.classList.remove('hidden');
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm text-primary">check</span> Diagram Ready';
+            } else {
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">block</span> No Diagram Needed';
+            }
+        } catch(e) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Failed';
+        }
     }
-  }
-}
 
-// ── LATEX DOWNLOAD ──
-function downloadLaTeX() {
-  const qText = document.getElementById('q-text').value.trim() || savedQ.extraText || "Image based question";
-  
-  let cleanSolution = lastRawSolution.replace(/\*\*\*/g, '').replace(/\*\*/g, '\\textbf{').replace(/\*/g, '');
-  cleanSolution = cleanSolution.replace(/([^\\])%/g, '$1\\%');
+    async function downloadPDF(btnElement) {
+        const originalHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Generating...';
+        btnElement.disabled = true;
+        
+        try {
+            const r = await apiFetch('/api/pdf', {
+                text: lastRawSolution,
+                imageBase64: imageBase64,
+                imageType: imageType,
+                svgDiagram: document.getElementById('diagram-container')?.innerHTML || null,
+                sessionId: sessionId
+            });
+            if (r.pdfUrl) window.open(r.pdfUrl, '_blank');
+            else throw new Error('PDF URL missing');
+        } catch (err) {
+            alert('PDF Error: ' + err.message);
+        } finally {
+            btnElement.innerHTML = originalHtml;
+            btnElement.disabled = false;
+        }
+    }
 
-  const latexContent = `\\documentclass[12pt]{article}
-\\usepackage{amsmath}
-\\usepackage{amssymb}
-\\usepackage{graphicx}
-\\usepackage[margin=1in]{geometry}
-
-\\begin{document}
-
-\\section*{Question (${currentSub})}
-${qText}
-
-\\vspace{1em}
-\\hrule
-\\vspace{1em}
-
-\\section*{AI Drafted Solution}
-${cleanSolution}
-
-\\end{document}`;
-
-  const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
-  
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `ANISH_Source_${currentSub}_${Date.now()}.tex`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+    // Dummy Init for Quota UI
+    window.onload = () => {
+        document.getElementById('quota-display').innerText = "Quota active";
+    };
 </script>
 </body>
 </html>
